@@ -1,0 +1,22 @@
+{
+  "author": "Jamie Cristini",
+  "name": "1010macro-external-dev-templare",
+  "version": "0.0.0",
+  "homepage": "http://wwww.1010data.com",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "grunt-replace": "^1.0.1",
+    "glob": "^7.0.3",
+    "grunt": "^1.0.1",
+    "load-grunt-tasks": "^3.5.0",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-tendo": "^0.0.0",
+    "serve-index": "^1.7.3",
+    "serve-static": "^1.10.3",
+    "time-grunt": "^0.3.1"
+  },
+  "ignore": {}
+}
