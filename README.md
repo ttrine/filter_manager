@@ -1,10 +1,25 @@
 # 1010macro-external-dev-template
-Template to get started using an external development environment for '1010 macro'
+Template to get started using an external development environment for '1010 macro'.  
 
+##Requirements:
+* [Nodejs](http://nodejs.org/)
+* [Grunt](http://gruntjs.com/)
 
 ## Getting Started
 
+
+Install the [Nodejs](http://nodejs.org/) modules used by the project:
+```js
+    npm install
+```    
+
+
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins.
+
+Install the grunt command line interface (globally):
+```js
+    npm install -g grunt-cli
+```    
 
 
 ## Grunt task examples:
