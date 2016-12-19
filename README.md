@@ -21,6 +21,9 @@ Install the grunt command line interface (globally):
     npm install -g grunt-cli
 ```    
 
+##Notes on TenDo
+TenDo tasks are executed via the [grunt-tendo](https://www.npmjs.com/package/grunt-tendo) npm package (which internally uses the [tendo](https://www.npmjs.com/package/tendo) npm package).   The grunt-tendo task configurations are located in 'tasks\configure.tendo.js' and additional configuration values can be found 'build.config.js'. 
+
 
 ## Grunt task examples:
  
