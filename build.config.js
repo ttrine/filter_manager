@@ -7,9 +7,9 @@ module.exports = {
      * 1010data credentials
      */
     login: {
-        gateway: 'https://www2.1010data.com/beta-latest/gw',
-        id: '',
-        password: ''
+        gateway: process.env['TENTENGW'] || 'https://www2.1010data.com/beta-latest/gw',
+        id: process.env['TENTENUID'],
+        password: process.env['TENTENPW']
     },
 
     quickapps: {
