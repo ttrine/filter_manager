@@ -28,7 +28,7 @@ TenDo tasks are executed via the [grunt-tendo](https://www.npmjs.com/package/gru
 ## Grunt task examples:
  
 #### Serve task
-Can be used to automate file changes. 
+Can be used to automate file changes (deploying, tokenizing, etc). 
 
 * Starts a 'connect' http webserver locally ([http://localhost:8081/](http://localhost:8081/)) (see 'tasks/configure.connect.js') ,
 * Watches for file changes (see 'tasks/configure.watch.js) and runs configured tasks.
