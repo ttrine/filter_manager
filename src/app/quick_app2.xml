@@ -1,7 +1,0 @@
-<note type="base">Applied to table: default.lonely</note>
-<defblock name="myBlock">
-<dynamic p="">
-    <widget class_="text" text_="App2 - test"/>
-</dynamic>
-</defblock>
-<insert block="myBlock" />

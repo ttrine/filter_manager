@@ -1,0 +1,18 @@
+<do value_="@exists_<%= index %>">
+    <meta>empty</meta>
+    <directory folder="<%= parent_folder %>"/>
+    <willbe name="exists" value="path='<%= folder %>'"/>
+    <willbe name="rowcount" value="g_cnt(;exists)"/>
+    <sel value="i_()=1"/>
+    <colord cols="rowcount"/>
+</do>
+<do when_="{@exists_<%= index %>=0}" action_="api" api_="mkdir">
+    <name><%= folder %></name>
+    <users type="list">
+        <user><%= users %></user>
+    </users>
+    <uploaders type="list">
+        <user><%= users %></user>
+    </uploaders>
+    <title><%= title %></title>
+</do>

@@ -1,47 +1,60 @@
 module.exports = function (grunt) {
 
-    return {
-        /**
-         * By default, we want the Live Reload to work for all tasks; this is
-         * overridden in some tasks (like this file) where browser resources are
-         * unaffected. It runs by default on port 35729, which your browser
-         * plugin should auto-detect.
-         */
-        options: {
-            livereload: true,
-            livereloadOnError: false,
-            spawn: false
-        },
+    var buildConfig = require('../build.config.js');
+    var _ = require('lodash');
 
-        html: {
-            files: ['<%= app_files.html %>'],
-            tasks: ['build']
-        },
+    var quickQueryWatchers = _.reduce(buildConfig['quick_queries'], function asFileWatcher(acc, obj, name) {
+        var tasks = ['tendo:' + name];
+        if (obj.dest)
+            tasks.unshift('replace:' + name);
 
-        quickapps: {
-            files: ['<%= app_files.quickapps %>'],
-            tasks: ['upload']
-        },
+        acc[name] = {
+            files: obj.src,
+            tasks: tasks
+        };
+        return acc;
+    }, {});
 
-        query: {
-            files: ['<%= app_files.queries %>'],
-            tasks: ['query']
-        },
-
-        config_files: {
-            files: ['<%= grunt_files.js %>'],
-            tasks: ['build'],
+    return _.extend({
+            /**
+             * By default, we want the Live Reload to work for all tasks; this is
+             * overridden in some tasks (like this file) where browser resources are
+             * unaffected. It runs by default on port 35729, which your browser
+             * plugin should auto-detect.
+             */
             options: {
-                reload: true
+                livereload: true,
+                livereloadOnError: false,
+                spawn: false
+            },
+
+            html: {
+                files: ['<%= quick_queries.hello_world.container %>'],
+                tasks: ['build']
+            },
+
+            config_files: {
+                files: ['Gruntfile.js', 'tasks/**/*.js', 'build.config.js'],
+                tasks: ['build'],
+                options: {
+                    reload: true
+                }
+            },
+
+            gruntfile: {
+                files: ['Gruntfile.js', 'tasks/**/*.js', 'build.config.js'],
+                options: {
+                    reload: true,
+                    livereload: false
+                }
+            },
+
+            weather: {
+                files: ['src/queries/weather.xml'],
+                tasks: ['tendo:weather']
             }
         },
 
-        gruntfile: {
-            files: ['<%= grunt_files.js %>'],
-            options: {
-                reload: true,
-                livereload: false
-            }
-        }
-    }
+        // watch all defined quick_queries
+        quickQueryWatchers);
 };

@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = function (grunt) {
-
+    var _ = require('lodash');
 
     /**
      * Loads all config files that start with "config." (configs can export a function(grunt) or object)
@@ -29,47 +29,63 @@ module.exports = function (grunt) {
     // Time how long tasks take. Can help when optimizing build times
     require('time-grunt')(grunt);
 
+    var gateway = grunt.option('g') || process.env['TENTENGW'] || 'https://www2.1010data.com/beta-latest/gw';
+    var login_id = grunt.option('u') || process.env['TENTENUID'];
+    if (!login_id)
+        grunt.fatal('Login ID not specified via "-u" cmd line arg or specified as environment variable "TENTENGW"');
+
+    var login_password = grunt.option('p') || process.env['TENTENPW'];
+    if (!login_password)
+        grunt.fatal('Password not specified via "-p" cmd line arg or specified as environment variable "TENTENPW"');
+
+    var buildConfig = require('./build.config.js');
     grunt.initConfig(
-        grunt.util._.extend(
-            require('./build.config.js'), // build info
+        grunt.util._.extend({
+                login_id: login_id,
+                login_password: login_password,
+                login_gateway: gateway
+            },
+            buildConfig, // build info
             grunt.file.readJSON('package.json'), // app/package info
             loadTaskConfigs('./tasks/') // task configs
         )
     );
 
-    /**
-     * Only upload the changed files
-     */
-    var changedFiles = Object.create(null);
-    var onChange = grunt.util._.debounce(function () {
-        grunt.config('tendo.upload.src', Object.keys(changedFiles));
-        grunt.config('tendo.query.src', Object.keys(changedFiles));
-        changedFiles = Object.create(null);
-    }, 200);
-    grunt.event.on('watch', function (action, filepath) {
-        changedFiles[filepath] = action;
-        onChange();
-    });
-
     grunt.loadTasks('tasks'); // load custom task files in the tasks folder
 
-    grunt.registerTask('default', ['serve']);
+    grunt.registerTask('default', ['serve']); // default task in none specified on cmd line
 
-    grunt.registerTask('upload', [
-        'tendo:upload'
-    ]);
-
-    grunt.registerTask('query', [
-        'tendo:query'
-    ]);
-
-    grunt.registerTask('inline_query', [
-        'tendo:inline_query'
-    ]);
-
-    grunt.registerTask('build', [
+    grunt.registerTask('build', [ // builds html containers
         'clean:build',
         'replace:build'
+    ]);
+
+    grunt.registerTask('short_delay', 'avoids "ACCUM" error after running create_folders query', function (target) {
+        var done = this.async();
+        setTimeout(done, 5000);
+    });
+
+    // builds, creates folders and deploy the app
+    grunt.registerTask('deploy', [
+        'clean:build',
+        'replace', // tokenize files
+        'create_folders:build',
+        'tendo:create_folders',
+        'short_delay',
+        'deploy_all_quick_queries'
+    ]);
+
+    var queries = _.reduce(buildConfig['quick_queries'], function asFileWatcher(acc, obj, name) {
+        acc.push('tendo:' + name);
+        return acc;
+    }, []);
+
+    // creates a deploy task from all 'quick_queries' defined in build.config.js
+    grunt.registerTask('deploy_all_quick_queries', queries.reverse());
+
+    // runs tjhe weather query via tendo
+    grunt.registerTask('weather', [
+        'tendo:weather'
     ]);
 
     grunt.registerTask('serve', 'Compile then start a "connect" web server', function (target) {

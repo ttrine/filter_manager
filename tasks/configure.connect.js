@@ -10,7 +10,7 @@ module.exports = function (grunt) {
 
     return {
         options: {
-            port: 8081,
+            port: 8000,
             // Change this to '0.0.0.0' to access the server from outside.
             hostname: 'localhost'
             //livereload: 35729
@@ -19,11 +19,11 @@ module.exports = function (grunt) {
         livereload: {
             options: {
                 open: false,
-                port: 8081,
+                port: 8000,
                 middleware: function (connect) {
                     return [
                         serveStatic(buildConfig["build_dir"]),
-                        serveStatic(buildConfig["app"]),
+                        serveStatic(buildConfig["app_dir"]),
                         serveIndex(buildConfig["build_dir"], {'icons': true})
                     ];
                 }

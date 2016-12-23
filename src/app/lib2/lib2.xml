@@ -1,0 +1,5 @@
+<library>
+    <block name="helloLib2">
+        <widget class_="text" text_="Hello From Lib2 - [[DATE_TEST]]"/>
+    </block>
+</library>

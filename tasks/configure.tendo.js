@@ -1,33 +1,42 @@
 module.exports = function (grunt) {
-    return {
-        options: {
-            login: {
-                'TENTENGW': '<%= login.gateway %>',
-                'TENTENUID': '<%= login.id %>',
-                'TENTENPW': '<%= login.password %>'
-            },
-            args: '-K -y',
-            logResults: true,
-            logTenDoCmd: true
-        },
 
-        upload: {
-            table: '<%= quickapps.hello_world.table %>',
-            src: ['<%= app_files.quickapps %>'],
+    var buildConfig = require('../build.config.js');
+    var _ = require('lodash');
+
+    function mapSrcOrTokenizedFile(acc, o, name) {
+        var obj = _.cloneDeep(o);
+        // use the tokenized file
+        if (obj.dest)
+            obj.src = obj.dest;
+        acc[name] = obj;
+        return acc;
+    }
+
+    return _.extend({
             options: {
-                args: '-K -y --query -[[DATE_TEST]]="' + new Date().toString() + '"',
-                logResults: false
+                login: {
+                    'TENTENGW': '<%= login.gateway %>',
+                    'TENTENUID': '<%= login.id %>',
+                    'TENTENPW': '<%= login.password %>'
+                },
+                args: '-K -y --query',
+                logResults: true,
+                logTenDoCmd: true
+            },
+
+            weather: {
+                table: 'pub.demo.weather.pwcodes',
+                src: ['src/queries/weather.xml'],
+                options: {
+                    args: '-K'
+                }
             }
         },
 
-        query: {
-            table: 'pub.demo.weather.pwcodes',
-            src: ['<%= app_files.queries %>']
-        },
+        // add all of the quick_queries as available tendo tasks
+        _.reduce(buildConfig['quick_queries'], mapSrcOrTokenizedFile, {}),
 
-        inline_query: {
-            table: 'pub.demo.weather.pwcodes',
-            inlineQuery: '.'
-        }
-    }
+        // add all of the initialization quick_queries as available tendo tasks
+        _.reduce(buildConfig['init_queries'], mapSrcOrTokenizedFile, {})
+    );
 };

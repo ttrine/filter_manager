@@ -16,7 +16,8 @@
     "grunt-tendo": "^0.0.0",
     "serve-index": "^1.7.3",
     "serve-static": "^1.10.3",
-    "time-grunt": "^0.3.1"
+    "time-grunt": "^0.3.1",
+    "lodash": "^4.17.2"
   },
   "ignore": {}
 }

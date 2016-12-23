@@ -2,51 +2,58 @@
  * This file/module contains all configuration for the build process.
  */
 module.exports = {
+    /**
+     * The `build_dir` folder is where the projects html files are compiled too
+     */
+    build_dir: 'build',
+    app_dir: 'src/app',
 
     /**
      * 1010data credentials
      */
     login: {
-        gateway: process.env['TENTENGW'] || 'https://www2.1010data.com/beta-latest/gw',
-        id: process.env['TENTENUID'],
-        password: process.env['TENTENPW']
+        gateway: '<%= login_gateway %>',
+        id: '<%= login_id %>',
+        password: '<%= login_password %>'
     },
 
-    quickapps: {
-        hello_world: {
-            container: 'src/app/hello.world.html',
-            url: '',
-            table: ''
+    root_path: 'pub.consumer_data.oi.internal.workspace.<%= login.id %>.app',
+    basetable: 'default.lonely',
+
+    init_queries: {
+        create_folders: {
+            table: '<%= basetable %>',
+            template: 'src/_init/template_create_folders.xml',
+            dest: '<%= build_dir %>/_init/create_folders.xml',
+            users: 'oi_internal_users',
+            options: {
+                args: '-k' // force a new session which ensures folder caches are cleared
+            }
         }
-        /**
-         * example:
-         *    hello_world: {
-         *       container: 'src/app/hello.world.html',
-         *       url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=pub.consumer_data.oi.internal.workspace.jamie_cristini.MyTendoTest2',
-         *       table: 'pub.consumer_data.oi.internal.workspace.jamie_cristini.MyTendoTest2\(MyTendoTest2\;\;\)=default.lonely'
-         *   }
-         *
-         *
-         */
     },
 
-    /**
-     * The `build_dir` folder is where the projects html files are compiled too
-     */
-    build_dir: 'build',
-    app: 'src/app',
+    quick_queries: {
+        hello_world: {
+            container: '<%= app_dir %>/hello.world.html',
+            src: '<%= app_dir %>/hello.world.xml',
+            dest: '<%= build_dir %>/app/hello.world.xml',  // tokenize using 'replace' task
+            title: 'Hello World Example App',
+            name: '<%= root_path %>.main',
+            url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.hello_world.name %>',
+            table: '<%= quick_queries.hello_world.name %>\(<%= quick_queries.hello_world.title %>\;\;\)=<%= basetable %>'
+        },
 
-    app_files: {
-        html: ['<%= quickapps.hello_world.container %>'],
-        quickapps: ['src/app/**/*.xml'],
-        queries: ['src/queries/**/*.xml']
-    },
+        lib1: {
+            table: '<%=root_path%>.lib1.lib1\(Library 1\;\;\)=<%= basetable %>',
+            src: ['<%= app_dir %>/lib1/lib1.xml']
+        },
 
-    grunt_files: {
-        js: ['Gruntfile.js', 'tasks/**/*.js', 'build.config.js']
-    },
-
-    config_files: {
-        project: 'build.config.js'
+        lib2: {
+            table: '<%=root_path%>.lib2.lib2\(Library 2\;\;\)=<%= basetable %>',
+            src: ['<%= app_dir %>/lib2/lib2.xml'],
+            options: {
+                args: '-K -y --query -[[DATE_TEST]]="' + new Date().toString() + '"'
+            }
+        }
     }
 };

@@ -1,7 +1,10 @@
-<note type="base">Applied to table: default.lonely</note>
-<defblock name="myBlock">
-<dynamic p="">
-    <widget class_="text" text_="Hello World - built [[DATE_TEST]]"/>
+<import path="@@root_path.lib1.lib1" once="1"/>
+<import path="@@root_path.lib2.lib2" once="1"/>
+<block name="helloWorld">
+    <widget class_="text" text_="Hello World"/>
+</block>
+<dynamic>
+    <insert block="helloWorld"/>
+    <insert block="helloLib1"/>
+    <insert block="helloLib2"/>
 </dynamic>
-</defblock>
-<insert block="myBlock"/>
