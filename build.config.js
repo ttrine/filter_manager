@@ -17,7 +17,7 @@ module.exports = {
         password: '<%= login_password %>'
     },
 
-    root_path: 'pub.consumer_data.oi.internal.workspace.<%= login.id %>.app',
+    root_path: 'pub.consumer_data.oi.internal.workspace.<%= login.id %>.hello_world',
     basetable: 'default.lonely',
 
     init_queries: {
