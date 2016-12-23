@@ -34,23 +34,18 @@ module.exports = function (grunt) {
             return acc;
         }, {folders: [], path: ""});
 
+        var users = (options.users || '').split(',').map(function(u){return u.trim()});
         folders = parentFolders.folders.concat(folders);
-
-        var template = grunt.file.read(options.template);
-        var content = folders.reduce(function (acc, folder) {
-            acc += grunt.template.process(template, {
-                data: {
-                    index: folder.index,
-                    parent_folder: folder.parent,
-                    folder: folder.path,
-                    title: folder.title,
-                    users: options.users
-                }
-            });
-            return acc;
-        }, "");
-
-        grunt.file.write(options.dest, '<dynamic><note>' + new Date() + '</note>' + content + '</dynamic>');
+        grunt.file.copy(options.template, options.dest, {
+            process: function (contents) {
+                return grunt.template.process(contents, {
+                    data: {
+                        folders: folders,
+                        users: users
+                    }
+                });
+            }
+        });
     });
 
     return {

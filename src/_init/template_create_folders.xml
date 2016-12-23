@@ -1,18 +1,27 @@
-<do value_="@exists_<%= index %>">
-    <meta>empty</meta>
-    <directory folder="<%= parent_folder %>"/>
-    <willbe name="exists" value="path='<%= folder %>'"/>
-    <willbe name="rowcount" value="g_cnt(;exists)"/>
-    <sel value="i_()=1"/>
-    <colord cols="rowcount"/>
-</do>
-<do when_="{@exists_<%= index %>=0}" action_="api" api_="mkdir">
-    <name><%= folder %></name>
-    <users type="list">
-        <user><%= users %></user>
-    </users>
-    <uploaders type="list">
-        <user><%= users %></user>
-    </uploaders>
-    <title><%= title %></title>
-</do>
+<dynamic>
+    <note><%= new Date() %></note>
+<% folders.forEach( function ( folder ) { %>
+    <do value_="@exists_<%= folder.index %>">
+        <meta>empty</meta>
+        <directory folder="<%= folder.parent %>"/>
+        <willbe name="exists" value="path='<%= folder.path %>'"/>
+        <willbe name="rowcount" value="g_cnt(;exists)"/>
+        <sel value="i_()=1"/>
+        <colord cols="rowcount" />
+    </do>
+    <do when_="{@exists_<%= folder.index %>=0}" action_="api" api_="mkdir">
+        <name><%= folder.path %></name>
+        <users type="list">
+            <% users.forEach( function ( user ) { %>
+                <user><%= user %></user>
+            <% }); %>
+        </users>
+        <uploaders type="list">
+            <% users.forEach( function ( user ) { %>
+            <user><%= user %></user>
+            <% }); %>
+        </uploaders>
+        <title><%= folder.title %></title>
+    </do>
+<% }); %>
+</dynamic>
