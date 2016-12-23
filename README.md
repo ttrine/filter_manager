@@ -74,8 +74,8 @@ To manually deploy the query:
 
 ## Grunt tasks:
 
- #### Deploy task
- Deploys the application into 1010 creating any folders needed.  The root of the application is declared as 'root_path' in 'build.config.js'.
+#### Deploy task
+Deploys the application into 1010 creating any folders needed.  The root of the application is declared as 'root_path' in 'build.config.js'.
 ```
     root_path: 'pub.consumer_data.oi.internal.workspace.<%= login.id %>.app',
 ``` 
