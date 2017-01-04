@@ -57,7 +57,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', [ // builds html containers
         'clean:build',
-        'replace:build'
+        'template:build'
     ]);
 
     grunt.registerTask('short_delay', 'avoids "ACCUM" error after running create_folders query', function (target) {
@@ -68,7 +68,7 @@ module.exports = function (grunt) {
     // builds, creates folders and deploy the app
     grunt.registerTask('deploy', [
         'clean:build',
-        'replace', // tokenize files
+        'template', // tokenize files
         'create_folders:build',
         'tendo:create_folders',
         'short_delay',

@@ -6,7 +6,7 @@
   "dependencies": {
   },
   "devDependencies": {
-    "grunt-replace": "^1.0.1",
+    "grunt-template": "^1.0.0",
     "glob": "^7.0.3",
     "grunt": "^1.0.1",
     "load-grunt-tasks": "^3.5.0",
