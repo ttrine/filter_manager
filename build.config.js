@@ -40,7 +40,8 @@ module.exports = {
             title: 'Hello World Example App',
             name: '<%= root_path %>.main',
             url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.hello_world.name %>',
-            table: '<%= quick_queries.hello_world.name %>\(<%= quick_queries.hello_world.title %>\;\;\)=<%= basetable %>'
+            table: '<%= quick_queries.hello_world.name %>\(<%= quick_queries.hello_world.title %>\;\;\)=<%= basetable %>',
+            ordinal: 99
         },
 
         lib1: {

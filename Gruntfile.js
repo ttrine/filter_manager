@@ -75,13 +75,17 @@ module.exports = function (grunt) {
         'deploy_all_quick_queries'
     ]);
 
-    var queries = _.reduce(buildConfig['quick_queries'], function asFileWatcher(acc, obj, name) {
-        acc.push('tendo:' + name);
-        return acc;
-    }, []);
+  var quickQueriesByOrder = _.chain(buildConfig['quick_queries'])
+    .reduce(function asTendoTask(acc, obj, name) {
+      acc.push({name: 'tendo:' + name, ordinal: obj.ordinal || 1});
+      return acc;
+    }, [])
+    .sortBy(['ordinal','asc'])
+    .map('name')
+    .value();
 
     // creates a deploy task from all 'quick_queries' defined in build.config.js
-    grunt.registerTask('deploy_all_quick_queries', queries.reverse());
+    grunt.registerTask('deploy_all_quick_queries', quickQueriesByOrder);
 
     // runs tjhe weather query via tendo
     grunt.registerTask('weather', [
