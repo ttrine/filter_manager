@@ -96,6 +96,7 @@ module.exports = function (grunt) {
         grunt.task.run([
             'build',
             'connect:livereload',
+            'open:localhost',
             'watch'
         ]);
     });

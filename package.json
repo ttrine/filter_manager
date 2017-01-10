@@ -13,6 +13,7 @@
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-contrib-connect": "^1.0.2",
+    "grunt-open": "^0.2.3",
     "tendo": "^0.0.2",
     "grunt-tendo": "^0.0.2",
     "serve-index": "^1.7.3",
