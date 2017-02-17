@@ -2,6 +2,7 @@
 
 module.exports = function (grunt) {
     var _ = require('lodash');
+    process.env.project_dir = __dirname;
 
     /**
      * Loads all config files that start with "config." (configs can export a function(grunt) or object)
@@ -57,7 +58,13 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', [ // builds html containers
         'clean:build',
-        'template:build'
+        'template'
+    ]);
+
+    grunt.registerTask('test_queries', [
+      'clean:build',
+      'template',
+      'jasmine_nodejs:test_queries'
     ]);
 
     grunt.registerTask('short_delay', 'avoids "ACCUM" error after running create_folders query', function (target) {
@@ -96,7 +103,6 @@ module.exports = function (grunt) {
         grunt.task.run([
             'build',
             'connect:livereload',
-            'open:localhost',
             'watch'
         ]);
     });

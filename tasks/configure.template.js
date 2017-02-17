@@ -25,6 +25,13 @@ module.exports = function (grunt) {
           src: ['<%= quick_queries.hello_world.container %>'],
           dest: '<%= build_dir %>'
         }]
+      },
+
+      query_tests: {
+        files: [{
+          src: ['test/tendo.helper.template.js'],
+          dest: '<%= build_dir %>/tendo.helper.js'
+        }]
       }
     },
     // replace tokens in quick queries which have a build dest
