@@ -11,7 +11,7 @@ Boilerplate template to provide grunt tasks to:
 * [Tendo](http://www.1010data.com/)
 
 ##Optional
-* [LiveReload](http://livereload.com/) to automatically refresh browser when files change. 
+* [LiveReload](https://chrome.google.com/webstore/search/livereload) chrome extension to automatically refresh browser when files change. 
 
 ## Getting Started
 Install the [Nodejs](http://nodejs.org/), [Grunt](http://gruntjs.com/) and [Tendo](http://www.1010data.com/)  
@@ -43,10 +43,11 @@ Before diving into any of the configs lets see some quick examples!:
     grunt serve    
 ```
     
-3. Open a browser and navigate to (http://localhost:8000/hello.world.html). The "Hello World" quickapp will be loaded into the html iframe.
+3. Open a Chrome browser and navigate to (http://localhost:8000/hello.world.html). The "Hello World" quickapp will be loaded into the html iframe.
 
-4. Now open 'src/app/hello.world.xml' and change 'Hello World' to 'World Hello' and save.  The serve command will detect the file has change, rebuild it, push it up to 1010 and then refresh the browser ([LiveReload](http://livereload.com/) extension required).
-**NOTE** We are still awaiting a fix to allow the iframe to login by possessing the session without needing user interaction.  Currently it will log you in but come back and ask how you want to create the session.   
+4. Turn on the livereload extension (located in the upper right hand corner of the chrome browser).
+
+5. Now open 'src/app/hello.world.xml' and change 'Hello World' to 'World Hello' and save.  The serve command will detect the file has change, rebuild it, push it up to 1010 and then refresh the browser ([LiveReload.com](https://chrome.google.com/webstore/search/livereload) extension required).   
    
    
 ##Notes on TenDo
@@ -92,7 +93,7 @@ Can be used to automate file changes (deploying, tokenizing, etc).
 
 * Starts a 'connect' http webserver locally ([http://localhost:8000/](http://localhost:8000/)) (see 'tasks/configure.connect.js') ,
 * Watches for file changes (see 'tasks/configure.watch.js) and runs configured tasks.
-* Notifies 'LiveReload' browser plugin to refresh page (see 'tasks/configure.connect.js').  Also, see [livereload.com](http://livereload.com) for more info.
+* Notifies 'LiveReload' chrome extension to refresh page (see 'tasks/configure.connect.js').  Also, see [livereload.com](https://chrome.google.com/webstore/search/livereload) for more info.
 
 To run:
 ```
