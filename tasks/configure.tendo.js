@@ -19,7 +19,7 @@ module.exports = function (grunt) {
                     'TENTENUID': '<%= login.id %>',
                     'TENTENPW': '<%= login.password %>'
                 },
-                args: '-K -y -Y \\* --query',
+                args: '-K -y -Y "*" --query',
                 logResults: true,
                 logTenDoCmd: true
             },
