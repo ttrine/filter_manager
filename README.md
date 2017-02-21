@@ -22,13 +22,17 @@ Install the [Nodejs](http://nodejs.org/) modules used by the project (from the p
     npm install
 ```    
 
-
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins.
 
 Install the grunt command line interface (globally):
 ```js
     npm install -g grunt-cli
 ```    
+
+##Notes on TenDo
+* TenDo tasks are executed via the [grunt-tendo](https://www.npmjs.com/package/grunt-tendo) npm package (which internally uses the [tendo](https://www.npmjs.com/package/tendo) npm package).   The grunt-tendo task configurations are located in 'tasks\configure.tendo.js' and additional configuration values can be found 'build.config.js'. 
+* To simplify running grunt tasks add your 1010data user name and password to the system environment.  Please see [Setting Environment Variables](https://www2.1010data.com/documentationcenter/beta/TendoUsersGuide/index_frames.html).
+* An additional option is to add a 'TENDO_HOME' environment variable to the path of the TenDo executable.
 
 ## Quick usage examples:
 Before diving into any of the configs lets see some quick examples!:
@@ -49,10 +53,6 @@ Before diving into any of the configs lets see some quick examples!:
 
 5. Now open 'src/app/hello.world.xml' and change 'Hello World' to 'World Hello' and save.  The serve command will detect the file has change, rebuild it, push it up to 1010 and then refresh the browser ([LiveReload.com](https://chrome.google.com/webstore/search/livereload) extension required).   
    
-   
-##Notes on TenDo
-* TenDo tasks are executed via the [grunt-tendo](https://www.npmjs.com/package/grunt-tendo) npm package (which internally uses the [tendo](https://www.npmjs.com/package/tendo) npm package).   The grunt-tendo task configurations are located in 'tasks\configure.tendo.js' and additional configuration values can be found 'build.config.js'. 
-
 ## Auto-managed quick queries:
 Inside of the 'build.config.js' there is a node named 'quick_queries' this is where the auto-managed quick queries are defined.  Each node will automatically have a 'watch', 'tendo' and optionally a 'replace' task created.  
 Example:
