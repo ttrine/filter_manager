@@ -1,7 +1,7 @@
 <dynamic>
     <note><%= new Date() %></note>
-<% folders.forEach( function ( folder ) { %>
-    <do value_="@exists_<%= folder.index %>">
+    <% folders.forEach( function ( folder ) { %>
+    <do value_="@exists_<%= folder.id %>">
         <meta>empty</meta>
         <directory folder="<%= folder.parent %>"/>
         <willbe name="exists" value="path='<%= folder.path %>'"/>
@@ -9,11 +9,14 @@
         <sel value="i_()=1"/>
         <colord cols="rowcount" />
     </do>
-    <do when_="{@exists_<%= folder.index %>=0}" action_="api" api_="mkdir">
+    <do when_="{@exists_<%= folder.id %>=0}" action_="api" api_="mkdir">
         <name><%= folder.path %></name>
+        <title><%= folder.title %></title>
+        <test><%= users instanceof Array%></test>
+        <% if(users instanceof Array) { %>
         <users type="list">
             <% users.forEach( function ( user ) { %>
-                <user><%= user %></user>
+            <user><%= user %></user>
             <% }); %>
         </users>
         <uploaders type="list">
@@ -21,7 +24,10 @@
             <user><%= user %></user>
             <% }); %>
         </uploaders>
-        <title><%= folder.title %></title>
+        <% } else { %>
+        <users type="<%= users %>" />
+        <uploaders type="<%= users %>" />
+        <% } %>
     </do>
-<% }); %>
+    <% }); %>
 </dynamic>

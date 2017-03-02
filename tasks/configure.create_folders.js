@@ -1,54 +1,61 @@
 module.exports = function (grunt) {
-    var buildConfig = require('../build.config.js');
-    var _ = require('lodash');
+  var envConfig = require('../env.config.js')(grunt);
+  var _ = require('lodash');
 
-    grunt.registerMultiTask('create_folders', 'Create 1010 folders from quick_queries', function () {
-        var options = this.options({}, this.data);
-        var index = 0;
-        var quickQueries = grunt.config('quick_queries');
-        var folders = _.chain(quickQueries)
-            .map(function (o) {
-                var file = o.table.substring(0, o.table.indexOf('('));
-                var path = file.substring(0, file.lastIndexOf('.'));
-                var parent = path.substring(0, path.lastIndexOf('.'));
-                return {
-                    index: index++,
-                    parent: parent,
-                    path: path,
-                    title: o.title || path.substring(path.lastIndexOf('.') + 1)
-                }
-            })
-            .uniqBy('path')
-            .value();
+  grunt.registerMultiTask('create_folders', 'Create 1010 folders from quick_queries', function () {
+    var options = this.options({}, this.data);
+    var quickQueries = grunt.config('quick_queries');
+    var id = 0;
 
-        var parentFolders = _.reduce(folders[0].parent.split('.'), function (acc, obj, name) {
-            var path = (acc.path.length > 0) ? acc.path + '.' + obj : obj;
-            var parent = (acc.path.length > 0) ? acc.path : '0';
-            acc.folders.push({
-                index: index++,
-                parent: parent,
-                path: path,
-                title: obj
-            });
-            acc.path = path;
-            return acc;
-        }, {folders: [], path: ""});
+    function buildPaths(path, paths) {
+      var o = {
+        parent: '0',
+        path: path,
+        depth: path.split('.').length
+      };
 
-        var users = (options.users || '').split(',').map(function(u){return u.trim()});
-        folders = parentFolders.folders.concat(folders);
-        grunt.file.copy(options.template, options.dest, {
-            process: function (contents) {
-                return grunt.template.process(contents, {
-                    data: {
-                        folders: folders,
-                        users: users
-                    }
-                });
-            }
+      paths.push(o);
+      var hasParent = path.indexOf('.') != -1;
+      if (hasParent) {
+        o.parent = path.substring(0, path.lastIndexOf('.'));
+        return buildPaths(o.parent, paths)
+      }
+
+      return paths;
+    }
+
+    var folders = _.chain(quickQueries)
+      .map(function (o) {
+        var file = o.table.substring(0, o.table.indexOf('('));
+        var path = file.substring(0, file.lastIndexOf('.'));
+        return _.map(buildPaths(path, []), function (p) {
+          p.id = id++;
+          p.title = o.folderLabel || o.title || p.path.substring(p.path.lastIndexOf('.') + 1);
+          return p;
         });
-    });
+      })
+      .reduce(function (acc, obj, name) {
+        return acc.concat(obj);
+      }, [])
+      .uniqBy('path')
+      .sortBy(['depth', 'asc'])
+      .value();
 
-    return {
-        build: buildConfig.init_queries.create_folders
-    };
+    var users = (options.users || '');
+    users = (users === 'inherit' || users === 'private') ? users : users.split(',').map(function(u){return u.trim()});
+    grunt.file.copy(options.template, options.dest, {
+      process: function (contents) {
+        return grunt.template.process(contents, {
+          data: {
+            folders: folders,
+            users: users
+          }
+        });
+      }
+    });
+  });
+
+  return {
+    build: envConfig.init_queries.create_folders
+  };
 };
