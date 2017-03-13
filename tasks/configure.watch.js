@@ -6,7 +6,7 @@ module.exports = function (grunt) {
     var quickQueryWatchers = _.reduce(buildConfig['quick_queries'], function asFileWatcher(acc, obj, name) {
         var tasks = ['tendo:' + name];
         if (obj.dest)
-            tasks.unshift('replace:' + name);
+            tasks.unshift('template:' + name);
 
         acc[name] = {
             files: obj.src,
