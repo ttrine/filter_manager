@@ -25,7 +25,8 @@ module.exports = {
             table: '<%= basetable %>',
             template: 'src/_init/template_create_folders.xml',
             dest: '<%= build_dir %>/_init/create_folders.xml',
-            users: 'oi_internal_users',
+            // users: 'oi_ecom_internal_users',
+            users: 'inherit',
             options: {
                 args: '-k' // force a new session which ensures folder caches are cleared
             }
