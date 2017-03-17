@@ -10,3 +10,4 @@ build/
 bin/
 node_modules/
 lib/
+todo.txt

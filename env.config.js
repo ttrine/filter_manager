@@ -4,16 +4,16 @@
  *    grunt -env=ci deploy
  */
 module.exports = function (grunt) {
-  var buildConfig = require('./build.config.js');
-  var _ = require('lodash');
+	var buildConfig = require('./build.config.js');
+	var _ = require('lodash');
 
-  var env = grunt.option('env') || 'developer';
-  var overrides = buildConfig.env_configs[env] || {};
+	var env = grunt.option('env') || 'developer';
+	var overrides = buildConfig.env_configs[env] || {};
 
-  return _.extend(
-    buildConfig,
-    overrides, {
-      env: env
-    }
-  );
+	return _.extend(
+		buildConfig,
+		overrides, {
+			env: env
+		}
+	);
 };

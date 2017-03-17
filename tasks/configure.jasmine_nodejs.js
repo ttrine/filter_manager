@@ -1,16 +1,16 @@
 module.exports = function (grunt) {
-    return {
+	return {
 
-        test_queries: {
-            options: {
-                useHelpers: true
-            },
-            specs: [
-                "src/queries/**/*.spec.js"
-            ],
-            helpers: [
-                "<%= build_dir %>/tendo.helper.js"
-            ]
-        }
-    }
+		test_queries: {
+			options: {
+				useHelpers: true
+			},
+			specs: [
+				"src/queries/**/*.spec.js"
+			],
+			helpers: [
+				"<%= build_dir %>/tendo.helper.js"
+			]
+		}
+	}
 };

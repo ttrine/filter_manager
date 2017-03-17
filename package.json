@@ -1,25 +1,24 @@
 {
-  "author": "Tyler Trine",
-  "name": "filter_manager",
-  "version": "0.1.0",
-  "homepage": "http://wwww.1010data.com",
-  "dependencies": {
-  },
-  "devDependencies": {
-    "grunt-template": "^1.0.0",
-    "glob": "^7.0.3",
-    "grunt": "^1.0.1",
-    "load-grunt-tasks": "^3.5.0",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-watch": "^1.0.0",
-    "grunt-contrib-connect": "^1.0.2",
-    "grunt-jasmine-nodejs": "^1.5.4",
-    "tendo": "^0.0.5",
-    "grunt-tendo": "^0.0.5",
-    "serve-index": "^1.7.3",
-    "serve-static": "^1.10.3",
-    "time-grunt": "^0.3.1",
-    "lodash": "^4.17.2"
-  },
-  "ignore": {}
+	"author": "Tyler Trine",
+	"name": "filter_manager",
+	"version": "0.1.0",
+	"homepage": "http://wwww.1010data.com",
+	"dependencies": {},
+	"devDependencies": {
+		"grunt-template": "^1.0.0",
+		"glob": "^7.0.3",
+		"grunt": "^1.0.1",
+		"load-grunt-tasks": "^3.5.0",
+		"grunt-contrib-clean": "^1.0.0",
+		"grunt-contrib-watch": "^1.0.0",
+		"grunt-contrib-connect": "^1.0.2",
+		"grunt-jasmine-nodejs": "^1.5.4",
+		"tendo": "^0.0.5",
+		"grunt-tendo": "^0.0.5",
+		"serve-index": "^1.7.3",
+		"serve-static": "^1.10.3",
+		"time-grunt": "^0.3.1",
+		"lodash": "^4.17.2"
+	},
+	"ignore": {}
 }

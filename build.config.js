@@ -2,102 +2,98 @@
  * This file/module contains all configuration for the build process.
  */
 module.exports = {
-    /**
-     * The `build_dir` folder is where the projects html files are compiled too
-     */
-    build_dir: 'build',
-    app_dir: 'src/app',
+	/**
+	 * The `build_dir` folder is where the projects html files are compiled too
+	 */
+	build_dir: 'build',
+	app_dir: 'src/app',
 
-    /**
-     * 1010data credentials
-     */
-    login: {
-        gateway: '<%= login_gateway %>',
-        id: '<%= login_id %>',
-        password: '<%= login_password %>'
-    },
+	/**
+	 * 1010data credentials
+	 */
+	login: {
+		gateway: '<%= login_gateway %>',
+		id: '<%= login_id %>',
+		password: '<%= login_password %>'
+	},
 
-    root_path: 'x1010data.ttrine.filter_manager_dev',
-    basetable: 'default.lonely',
+	root_path: 'x1010data.ttrine.filter_manager_dev',
+	basetable: 'default.lonely',
 
-    init_queries: {
-        create_folders: {
-            table: '<%= basetable %>',
-            template: 'src/_init/template_create_folders.xml',
-            dest: '<%= build_dir %>/_init/create_folders.xml', // tokenize template to dest using 'template' task
-            users: 'inherit',
-            options: {
-                args: '-k' // force a new session which ensures folder caches are cleared
-            }
-        }
-    },
+	init_queries: {
+		create_folders: {
+			table: '<%= basetable %>',
+			template: 'src/_init/template_create_folders.xml',
+			dest: '<%= build_dir %>/_init/create_folders.xml', // tokenize template to dest using 'template' task
+			users: 'inherit',
+			options: {
+				args: '-k' // force a new session which ensures folder caches are cleared
+			}
+		}
+	},
 
-    quick_queries: {
-        view: {
-            container: '<%= app_dir %>/hello.world.html',   // html iframe container
-            src: '<%= app_dir %>/view.xml',
-            dest: '<%= build_dir %>/app/view.xml',  // tokenize src to dest using 'template' task
-            title: 'Filter Manager',
-            name: '<%= root_path %>.view',
-            url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.view.name %>',
-            table: '<%= quick_queries.view.name %>\(<%= quick_queries.view.title %>\;\;\)=<%= basetable %>',
-            ordinal: 99 // deploy last because there are dependencies which must be deployed beforehand
-        },
+	quick_queries: {
+		// Root
+		view: {
+			container: '<%= app_dir %>/hello.world.html',   // html iframe container
+			src: '<%= app_dir %>/view.xml',
+			dest: '<%= build_dir %>/app/view.xml',  // tokenize src to dest using 'template' task
+			title: 'Filter Manager',
+			name: '<%= root_path %>.view',
+			url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.view.name %>',
+			table: '<%= quick_queries.view.name %>\(<%= quick_queries.view.title %>\;\;\)=<%= basetable %>',
+			ordinal: 99 // deploy last because there are dependencies which must be deployed beforehand
+		},
 
-        model: {
-            src: '<%= app_dir %>/model.xml',
-            dest: '<%= build_dir %>/app/model.xml',  // tokenize src to dest using 'template' task
-            title: 'Model',
-            name: '<%= root_path %>.model',
-            url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.model.name %>',
-            table: '<%= quick_queries.model.name %>\(<%= quick_queries.model.title %>\;\;\)=<%= basetable %>'
-        },
+		model: {
+			src: '<%= app_dir %>/model.xml',
+			dest: '<%= build_dir %>/app/model.xml',  // tokenize src to dest using 'template' task
+			title: 'Model',
+			name: '<%= root_path %>.model',
+			url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.model.name %>',
+			table: '<%= quick_queries.model.name %>\(<%= quick_queries.model.title %>\;\;\)=<%= basetable %>'
+		},
 
-        controller: {
-            src: '<%= app_dir %>/controller.xml',
-            dest: '<%= build_dir %>/app/controller.xml',  // tokenize src to dest using 'template' task
-            title: 'Controller',
-            name: '<%= root_path %>.controller',
-            url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.controller.name %>',
-            table: '<%= quick_queries.controller.name %>\(<%= quick_queries.controller.title %>\;\;\)=<%= basetable %>'
-        },
+		controller: {
+			src: '<%= app_dir %>/controller.xml',
+			dest: '<%= build_dir %>/app/controller.xml',  // tokenize src to dest using 'template' task
+			title: 'Controller',
+			name: '<%= root_path %>.controller',
+			url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.controller.name %>',
+			table: '<%= quick_queries.controller.name %>\(<%= quick_queries.controller.title %>\;\;\)=<%= basetable %>'
+		},
 
-        system_data: {
-            src: '<%= app_dir %>/system_data/init.xml',
-            dest: '<%= build_dir %>/app/init.xml',  // tokenize src to dest using 'template' task
-            title: 'Init',
-            name: '<%= root_path %>.system_data.init',
-            table: '<%= quick_queries.system_data.name %>\(<%= quick_queries.system_data.title %>\;\;\)=<%= basetable %>'
-        }
-    },
+		// System data
+		system_data: {
+			src: '<%= app_dir %>/system_data/init.xml',
+			dest: '<%= build_dir %>/app/init.xml',  // tokenize src to dest using 'template' task
+			title: 'Init',
+			name: '<%= root_path %>.system_data.init',
+			table: '<%= quick_queries.system_data.name %>\(<%= quick_queries.system_data.title %>\;\;\)=<%= basetable %>'
+		}
+	},
 
-    env_configs: {
-        developer: {},
-        ci: {
-          root_path: 'x1010data.ttrine.filter_manager.test.helloworld',
-          login: {
-            gateway: 'https://www2.1010data.com/beta-latest/gw',
-            id: '<%= login_id %>',
-            password: '<%= login_password %>'
-          },
-          support_directory: 'pub.consumer_data.oi.ecom.test.support',
-          reporters: {
-            teamcity: true
-          }
-        },
-        test: {
-          root_path: 'pub.consumer_data.oi.ecom.test',
-          support_directory: 'pub.consumer_data.oi.ecom.test.support'
-        },
+	env_configs: {
+		developer: {},
+		ci: {
+			root_path: 'x1010data.ttrine.filter_manager.test.helloworld',
+			login: {
+				gateway: 'https://www2.1010data.com/beta-latest/gw',
+				id: '<%= login_id %>',
+				password: '<%= login_password %>'
+			},
+		},
 
-        beta: {
-          root_path: 'pub.consumer_data.oi.ecom.beta',
-          support_directory: 'pub.consumer_data.oi.ecom.beta.support'
-        },
+		test: {
+			root_path: 'pub.consumer_data.oi.ecom.test',
+		},
 
-        prod: {
-          root_path: 'x1010data.ttrine.filter_manager.helloworld',
-          support_directory: 'pub.consumer_data.oi.ecom.client_portal.support'
-        }
-    }
+		beta: {
+			root_path: 'pub.consumer_data.oi.ecom.beta',
+		},
+
+		prod: {
+			root_path: 'x1010data.ttrine.filter_manager.helloworld',
+		}
+	}
 };

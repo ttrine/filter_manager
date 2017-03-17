@@ -1,6 +1,6 @@
 module.exports = {
-    build: [
-        '.tmp',
-        '<%= build_dir %>/**/*'
-    ]
+	build: [
+		'.tmp',
+		'<%= build_dir %>/**/*'
+	]
 };
