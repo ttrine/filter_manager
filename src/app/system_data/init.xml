@@ -1,0 +1,5 @@
+<library>
+	<block name="placeholder">
+		<base table="default.lonely"/>
+	</block>
+</library>

@@ -1,9 +1,13 @@
-# 1010macro-external-dev-template
-Boilerplate template to provide grunt tasks to:
-* run a local server to test quickapps in an iframe. When files change upload to 1010 and then refresh browser via [LiveReload](http://livereload.com/).
-* deploy application into 1010 (includes creating folders if they do not exist)
-* run queries and see the results in console (via tendo)
+# Filter Manager 
+The Filter Manager quickapp inside an external development environment.
 
+The development environment is based on Jamie's 1010macro-external-dev-template. Find his readme below.
+
+# 1010macro-external-dev-template
+1010macro-external-dev-template is a boilerplate template to provide grunt tasks to:
+* Run a local server to test quickapps in an iframe. When files change upload to 1010 and then refresh browser via [LiveReload](http://livereload.com/).
+* Deploy application into 1010 (includes creating folders if they do not exist)
+* Run queries and see the results in console (via tendo)
 
 ##Requirements:
 * [Nodejs](http://nodejs.org/)

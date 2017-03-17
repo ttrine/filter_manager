@@ -1,6 +1,6 @@
 module.exports = function (grunt) {
 
-  var buildConfig = require('../build.config.js');
+  var buildConfig = require('../env.config.js')(grunt);
   var _ = require('lodash');
 
   var builders = _.reduce(buildConfig['quick_queries'], function asFileWatcher(acc, obj, name) {
@@ -22,7 +22,7 @@ module.exports = function (grunt) {
         files: [{
           expand: true,
           flatten: true,
-          src: ['<%= quick_queries.hello_world.container %>'],
+          src: ['<%= quick_queries.view.container %>'],
           dest: '<%= build_dir %>'
         }]
       },

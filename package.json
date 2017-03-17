@@ -1,7 +1,7 @@
 {
-  "author": "Jamie Cristini",
-  "name": "1010macro-external-dev-templare",
-  "version": "0.0.0",
+  "author": "Tyler Trine",
+  "name": "filter_manager",
+  "version": "0.1.0",
   "homepage": "http://wwww.1010data.com",
   "dependencies": {
   },

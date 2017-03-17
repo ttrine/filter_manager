@@ -1,4 +1,4 @@
-<import path="<%= root_path %>.lib1.lib1" once="1"/>
+<import path="<%= root_path %>.view" once="1"/>
 <import path="<%= root_path %>.lib2.lib2" once="1"/>
 <block name="helloWorld">
     <widget class_="text" text_="Hello World"/>

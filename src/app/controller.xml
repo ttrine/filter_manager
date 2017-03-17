@@ -1,0 +1,177 @@
+<library>
+	<block name="companies_controller">
+		<do on_="init">
+			<note> Synch companies table with each dataset-specific one </note>
+			<insert block="synch_companies"/>
+		</do>
+
+		<do onsubmit_="add_company">
+			<note> Add a company to the database. </note>
+			<insert block="non_null_constraint"/>
+			<insert block="unique_constraint"/>
+			<insert block="insert"/>
+		</do>
+
+		<do onsubmit_="modify_company">
+			<note> Modify an existing company in the database. </note>
+			<insert block="current_compid_exists_constraint"/>
+			<insert block="non_null_constraint"/>
+			<insert block="unique_constraint"/>
+			<insert block="update"/>
+			<insert block="cascade_update"/>
+		</do>
+	</block>
+	
+	<block name="access_controller">
+
+		<do onchange_="selected_nodes">
+			<do>
+				<note> If at least 1 box is checked, put selection into a CSL </note>
+				<set node_list=""/>
+				<if test="{lst_len(lst(@selected_nodes))}">
+					<for i="1" to="{lst_len(@selected_nodes)}">
+						<set node_list="{splice('{@node_list}' @selected_nodes.{@i}.{lst_len(@selected_nodes.{@i})}.key;',')}"/>
+					</for>
+					<set node_list="{strdrop(@node_list;'';1)}"/>
+					<set node_list="{strsubst('{@node_list}';',';0;'\',\'')}"/>
+					<set node_list="{splice('\'' @node_list '\'';'')}"/>
+				</if>
+			</do>
+		</do>
+
+		<do onsubmit_="extract" when_="{csl_len(@node_list)>0}">
+			<do base_="<%= root_path %>.system_data.access" value1_="@company_list" row1_="1" col1_="1">
+				<willbe name="key" value="splice(dataset node;'.')"/>
+				<sel value="key={@node_list}"/>
+				<sel value="g_first1(compid;;)"/>
+				<willbe name="quoted_compid" value="splice('\'' compid '\'';'')"/>
+				<willbe name="companies" value="g_uval(;;quoted_compid;',';10000)"/>
+				<colord cols="companies"/>
+				<sel value="i_=1"/>
+			</do>
+		</do>
+
+		<do onsubmit_="grant">
+			<note> Process a grant event. </note>
+			<insert block="non_empty_lists_check"/>
+			<if test="{'{@mode}'='Ticker'}">
+				<insert block="legal_ticker_insert_constraint"/>
+			</if>
+			<insert block="grant"/>
+			<insert block="write_filters"/>		
+		</do>
+
+		<do onsubmit_="revoke">
+			<note> Process a revoke event. </note>
+			<insert block="non_empty_lists_check"/>
+			<insert block="revoke"/>
+			<insert block="write_filters"/>
+		</do>
+
+		<do onsubmit_="update_context_node">
+			<note> Implements drillability for Company Metrics feature. </note>
+			<do value1_="cm_dataset" row1_="1" col1_="1">
+				<insert block="company_metrics_main"/>
+				<sel value="node='{@cm_node}'"/>
+				<colord cols="dataset"/>
+			</do>
+			<do>
+				<set cm_key="{splice('\'' @cm_dataset '.' @cm_node '\'';'')}"/>
+			</do>
+		</do>
+
+		<do onsubmit_="parent_context">
+			<note> Change context node to context node's parent </note>
+			<do value1_="cm_dataset" value2_="cm_node" value3_="cm_key" row1_="1" col1_="1" row2_="1" col2_="2" row3_="1" col3_="3">
+				<base table="<%= root_path %>.system_data.hierarchies"/>
+				<insert block="get_parent" key="{@cm_key}"/>
+				<willbe name="key_quoted" value="splice('\'' key '\'';'')"/>
+				<colord cols="dataset,node,key_quoted"/>
+			</do>
+		</do>
+	</block>
+
+	<block name="hierarchies_controller">
+		<note> Get tree height for querytree whenever app starts or a hierarchy is changed </note>
+		<do>
+			<do on_="init" value_="tree_height" row_="1" col_="1">
+				<insert block="get_height"/>
+			</do>
+			<do onsubmit_="update_hierarchy" value_="tree_height" row_="1" col_="1">
+				<insert block="get_height"/>
+			</do>
+		</do>
+
+		<note> Extract dataset from folder path </note>
+		<do onchange_="dataset_folder">
+			<set dot_delim="{str_to_lst(@dataset_folder;'.')}"/>
+			<set dataset="{@dot_delim[lst_len(@dot_delim)]}"/>
+		</do>
+
+		<note> Modify a node in a dataset hierarchy </note>
+		<do onsubmit_="modify_node">
+			<insert block="dataset_selected_constraint"/>
+			<insert block="leaf_node_constraint"/>
+			<insert block="non_null_node_constraint"/>
+			<insert block="unique_node_constraint"/>
+			<insert block="modify_raw_hierarchy"/>
+			<insert block="modify_raw_hierarchies"/>
+			<insert block="modify_hierarchies"/>
+			<insert block="modify_access"/>
+			<insert block="modify_filters"/>
+		</do>
+
+		<note> Process a proposed dataset hierarchy </note>
+		<do onchange_="temp_path">
+			<insert block="dataset_selected_constraint"/>
+			<do>
+				<set refresh_grids="1"/>
+			</do>
+			<insert block="save_new_raw_hierarchy"/>
+			<insert block="has_tickers"/>
+			<insert block="save_proposed_raw_hierarchies_table"/>
+			<insert block="save_proposed_hierarchies_table"/>
+			<note> Store summary statistics in dynamic variables </note>
+			<do value1_="num_total" row1_="1" col1_="1" 
+				value2_="num_more" row2_="1" col2_="2" 
+				value3_="num_less" row3_="1" col3_="3" 
+				value4_="num_none" row4_="1" col4_="4" 
+				value5_="num_same_but_different" row5_="1" col5_="5" 
+				value6_="num_changed" row6_="1" col6_="6">
+				<insert block="filters_cascade_summary"/>
+			</do>
+			<do>
+				<set at_least_one_hier_update="1"/>
+			</do>
+		</do>
+
+		<note> Update a dataset hierarchy </note>
+		<do onsubmit_="commit_hierarchies_update">
+			<insert block="replace_raw_hierarchy"/>
+			<insert block="replace_raw_hierarchies"/>
+			<insert block="replace_hierarchies"/>
+			<insert block="replace_access_table"/>
+			<insert block="write_filters"/>
+		</do>
+
+		<note> Toggle visibility of the three screens </note>
+		<do onsubmit_="show_hierarchy_effect">
+			<set refresh_grids="0"/>
+			<set hierarchy_effect_visible="1"/>
+			<set access_summary_visible="0"/>
+		</do>
+
+		<do onsubmit_="show_access_summary">
+			<set refresh_grids="0"/>
+			<set hierarchy_effect_visible="0"/>
+			<set access_summary_visible="1"/>
+			<set access_full_visible="0"/>
+		</do>
+
+		<do onsubmit_="show_access_full">
+			<set refresh_grids="0"/>
+			<set access_summary_visible="0"/>
+			<set access_full_visible="1"/>
+		</do>
+	</block>
+</library>

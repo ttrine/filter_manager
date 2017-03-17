@@ -1,0 +1,558 @@
+<import path="<%= root_path %>.model"/>
+<import path="<%= root_path %>.controller"/>
+
+<library>
+	<block name="style">
+		<widget class_="text" type_="html" text_="<script type='text/javascript'>
+			jQuery('.hm-meal').css('background-color','#fdf6e3');
+			jQuery('.hm-widget').css('color','#002b36');
+
+			jQuery('.hm-label').css('font-family','Arial');
+			jQuery('.hm-label').css('color','#002b36');
+			jQuery('.hm-label').css('font-size','10pt');
+
+			jQuery('.hm-input').css('background-color','#fdf6e3');
+
+			jQuery('.hm-radio').css('color','#002b36');
+			jQuery('.hm-radio').css('font-family','Arial');
+
+			jQuery('.k-multiselect-wrap').css('background-color','#fdf6e3');
+			jQuery('.k-input').css('background-color','#fdf6e3');
+		</script>"/>
+	</block>
+
+	<block name="companies_view">
+		<layout type_="splitter" width_="300" 
+			arrange_="v" halign_="left" flexible_="0" collapsible_="0" 
+			background_="#eee8d5">
+
+			<layout height_="140"
+				arrange_="v" flexible_="0" collapsible_="0">
+
+				<widget class_="text" text_="Add" halign_="center" 
+					style_="font-family:menlo;
+								font-size:11pt;
+								color:#002b36"/>
+
+				<widget class_="field" label_="New compid:" 
+					inputwidth_="185"
+					value_="@new_compid"/>
+
+				<widget class_="button" type_="submit" text_="Add" 
+					halign_="right" 
+					submit_="add_company"/>
+			</layout>
+
+			<layout arrange_="v" flexible_="0" collapsible_="0">
+
+				<widget class_="text" text_="Modify"
+					halign_="center"
+					style_="font-family:menlo;
+								font-size:11pt;
+								color:#002b36"/>
+
+				<widget class_="field" label_="Current compid:" 
+					inputwidth_="167"
+					value_="@current_compid"/>
+
+				<widget class_="field" label_="New compid:"
+					inputwidth_="185"
+					value_="@new_compid" />
+
+				<widget class_="button" type_="submit" text_="Modify" 
+					halign_="right" 
+					submit_="modify_company"/>
+			</layout>
+		</layout>
+
+		<layout halign_="center" flexible_="0" collapsible_="0" 
+			background_="#eee8d5">
+
+			<widget class_="grid" type_="scroll" label_="Companies" 
+				rowcol_="0" refreshon_="1">
+				
+				<base table="<%= root_path %>.system_data.companies"/>
+			
+			</widget>
+		</layout>
+	</block>
+
+	<block name="access_view">
+		<layout type_="splitter" height_="100%" width_="300" 
+			arrange_="v" 
+			background_="#eee8d5">
+
+			<layout height_="300" arrange_="v" 
+				collapsible_="0">
+
+				<widget class_="text" text_="Nodes" 
+					halign_="center" 
+					style_="font-family:menlo;
+							font-size:11pt;
+							color:#002b36"/>
+
+				<widget class_="nest" refreshon_="{@access_full_visible}" 
+					bind_="exp_path,selected_nodes" to_="exp_path,selected_nodes">
+					<dynamic>
+						<widget class_="querytree" maxrows_="9999"
+							expvalue_="exp_path" pathvalue_="selected_nodes">
+
+							<insert block="generate_querytree"/>
+						</widget>
+					</dynamic>
+				</widget>
+			</layout>
+
+			<layout collapsible_="0"
+				arrange_="v">
+
+				<widget class_="text" text_="Companies" 
+					halign_="center" 
+					style_="font-family:menlo;
+							font-size:11pt;
+							color:#002b36"/>
+
+				<widget class_="dropdownlist" refreshon_="1"
+					inputwidth_="285" 
+					value_="@company_list">
+
+					<insert block="get_companies"/>
+				</widget>
+
+				<widget class_="button" type_="submit" text_="Extract from Nodes" submit_="extract"
+					halign_="center"/>
+
+			</layout>
+		</layout>
+
+		<layout type_="tabpanel" height_="100%" width_="100%" 
+			arrange_="v" halign_="left" collapsible_="0" 
+			background_="#eee8d5">
+
+			<layout label_="View" height_="865" width_="100%" 
+				halign_="center"
+				background_="#eee8d5">
+
+				<widget class_="grid" type_="scroll" label_="Current access" width_="1080"
+					rowcol_="0" refreshon_="1">
+
+					<insert block="view" node_list="{@node_list}" company_list="{@company_list}"/>
+				</widget>
+			</layout>
+
+			<layout label_="Grant" type_="splitter" height_="865" width_="100%" 
+				arrange_="h"
+				background_="#eee8d5">
+
+				<layout collapsible_="0">
+
+					<widget class_="grid" label_="Current access" type_="scroll" width_="1080"
+						rowcol_="0" refreshon_="1">
+
+						<insert block="grant_unchanged" node_list="{@node_list}" company_list="{@company_list}"/>
+					</widget>
+
+					<widget class_="grid" label_="Access to add" type_="scroll" width_="1080"
+						rowcol_="0" refreshon_="1">
+
+						<insert block="grant_insertions" node_list="{@node_list}" company_list="{@company_list}"/>
+					</widget>
+
+					<widget class_="grid" label_="Access to remove" type_="scroll" width_="1080" 
+						rowcol_="0" refreshon_="1">
+						<insert block="grant_deletions" node_list="{@node_list}" company_list="{@company_list}"/>
+					</widget>
+
+					<widget class_="button" type_="submit" text_="Grant" submit_="grant"/>
+				</layout>
+
+				<layout width_="340">
+					<widget class_="text" text_="Optional Fields" 
+							halign_="center" 
+							style_="font-family:menlo;
+									font-size:11pt"/>
+
+					<widget class_="radio" label_="Grant mode:"
+							value_="mode">
+
+						<table>Hierarchy;Ticker</table>
+
+					</widget>
+
+					<widget class_="radio" label_="Redaction mode:" value_="redaction_mode">
+
+						<table> Absolute;Relative </table>
+
+					</widget>
+
+					<widget class_="date" label_="Access start:" inputwidth_="185"
+							value_="access_start"/>
+
+					<widget class_="date" label_="Access end:" inputwidth_="189"
+							value_="access_end"/>
+
+					<widget class_="nest" bind_="redaction_mode,redaction_start,redaction_end" to_="redaction_mode,redaction_start,redaction_end">
+						<dynamic>
+							<insert block="style"/>
+							<if test="{strcmp(@redaction_mode;'Absolute';0)=0}">
+								<then>
+									<layout arrange_="v">
+
+										<widget class_="date" label_="Redaction start:" inputwidth_="171"
+												value_="redaction_start"/>
+
+										<widget class_="date" label_="Redaction end:" inputwidth_="171"
+												value_="redaction_end"/>
+									</layout>
+								</then>
+								<else>
+									<layout arrange_="v">
+										<widget class_="field" type_="numeric" min="0" label_="Earliest:" inputwidth_="50"
+												value_="redaction_start"/>
+									</layout>
+									<layout arrange_="v">
+										<widget class_="field" type_="numeric" min="0" label_="Latest:" inputwidth_="50"
+												value_="redaction_end"/>
+									</layout>
+								</else>
+							</if>
+						</dynamic>
+
+					</widget>
+				</layout>
+			</layout>
+
+			<layout label_="Revoke" height_="865" width_="100%" 
+				background_="#eee8d5">
+
+				<widget class_="grid" label_="Access to remove" type_="scroll" width_="1080"
+					refreshon_="1" rowcol_="0">
+
+					<insert block="revoke_deletions" node_list="{@node_list}" company_list="{@company_list}"/>
+				</widget>
+
+				<widget class_="button" type_="submit" text_="Revoke" submit_="revoke"/>
+
+			</layout>
+
+			<layout label_="Access Summaries" height_="865" width_="100%" 
+				background_="#eee8d5">
+
+				<layout arrange_="v">
+			        <widget class_="grid" width_="980" label_="Company Metrics" invmode_="hide" require_="{csl_len(@company_list)>0}" clickable_="node" value_="cm_node" submit_="update_context_node" rowcol_="0">
+						<insert block="company_metrics_main"/>
+			        </widget>
+
+			        <widget class_="button" type_="submit" submit_="parent_context" text_="Go up a level ↑"/>
+
+				</layout>
+		        <layout arrange_="h">
+		            <layout arrange_="v">
+		                <widget class_="grid" label_="{{@company_list}} can access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
+							<insert block="company_metrics_access_leaves"/>
+		                </widget>
+		            </layout>
+		            <layout arrange_="v">
+		                <widget class_="grid" label_="{{@company_list}} can't access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
+							<insert block="company_metrics_no_access_leaves"/>
+		                </widget>
+		            </layout>
+		        </layout>
+			</layout>
+
+		</layout>
+	</block>
+
+	<block name="hierarchies_view">
+		<layout type_="splitter" width_="410" 
+			arrange_="v" halign_="left" flexible_="0" collapsible_="0" 
+			background_="#eee8d5">
+
+			<layout arrange_="v" height_="150" 
+				flexible_="0">
+
+				<widget class_="text" text_="Select Dataset" 
+					halign_="center"
+					style_="font-family:menlo;
+							font-size:11pt"/>
+
+				<layout arrange_="v">
+
+					<widget class_="dropdown" label_="Dataset: " inputwidth_="192"
+						value_="dataset_folder"
+						tooltip_="Select your dataset to update or modify its hierarchy">
+
+						<note> Get list of datasets user can modify </note>
+						<directory folder="<%= root_path %>.dataset_configs"/>
+					</widget>
+
+					<layout arrange_="h" halign_="center">
+						<widget class_="button" type_="export" text_="Download to XLSX"
+							target_="xlsx">
+							<if test="{strcmp(@dataset_folder;'';0)<>0}">
+								<base table="{@dataset_folder}.raw_hierarchy"/>
+							</if>
+						</widget>
+						<widget class_="button" type_="export" text_="View in new tab"
+							target_="new">
+							<if test="{strcmp(@dataset_folder;'';0)<>0}">
+								<base table="{@dataset_folder}.raw_hierarchy"/>
+							</if>
+						</widget>
+					</layout>
+
+				</layout>
+			</layout>
+
+			<layout width_="360" 
+				arrange_="v" collapsible_="0">
+
+				<widget class_="text" text_="Update" 
+					halign_="center" 
+					style_="font-family:menlo;
+							font-size:11pt"/>
+
+				<widget class_="button" text_="Compute update summary" type_="set" 
+					halign_="center"
+					value_="stage_hierarchy" newvalue_="1"
+					tooltip_="Compute changes against a new hierarchy pasted in below. This won't change the hierarchy unless you confirm. Note that if you do confirm, the pasted hierarchy completely replaces the old one."/>
+
+				<widget class_="buildgrid" height_="400" width_="400"
+					value_="temp_path" savevalue_="stage_hierarchy">
+
+					<base table="<%= root_path %>.system_data.dummy"/>
+				</widget>
+
+			</layout>
+
+			<layout arrange_="v" flexible_="0" height_="190">
+				<widget class_="text" text_="Modify" 
+					halign_="center"
+					style_="font-family:menlo;
+					font-size:11pt"/>
+
+				<widget class_="field" label_="Current node:" inputwidth_="291" value_="current_node"/>
+
+				<widget class_="field" label_="New node:" inputwidth_="307" value_="new_node"/>
+
+				<widget class_="button" type_="submit" text_="Modify"
+					halign_="right" 
+					submit_="modify_node"
+					tooltip_="Modify a single node. This is a special operation and should be used with caution. If you are unsure whether you should Update or Modify, Update."/>
+			</layout>
+		</layout>
+
+		<layout height_="100%" width_="100%"
+			arrange_="v" collapsible_="0"
+			background_="#eee8d5">
+
+			<layout name_="hierarchy_effect" 
+				arrange_="v">
+
+				<widget class_="grid" label_="Nodes to add" type_="scroll" width_="1080" 
+					invmode_="hide" require_="{@hierarchy_effect_visible&@at_least_one_hier_update}" refreshon_="{@refresh_grids&@hierarchy_effect_visible}" rowcol_="0">
+
+					<insert block="hierarchy_insertions" nrow="{@nrow}" dataset="{@dataset}"/>
+				</widget>
+
+				<widget class_="grid" label_="Nodes to remove" type_="scroll" width_="1080"  
+					invmode_="hide" require_="{@hierarchy_effect_visible&@at_least_one_hier_update}" refreshon_="{@refresh_grids&@hierarchy_effect_visible}" rowcol_="0">
+
+					<insert block="hierarchy_deletions" nrow="{@nrow}" dataset="{@dataset}"/>
+				</widget>
+
+				<widget class_="button" type_="submit" text_="Next" 
+					invmode_="hide" require_="{@hierarchy_effect_visible&@at_least_one_hier_update}" submit_="show_access_summary"/>
+			</layout>
+
+			<layout name_="access_summary" 
+				arrange_="v">
+
+				<widget class_="text" text_="Summary of modifications to filters table"
+					halign_="center" invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:menlo;
+							font-size:11pt;color:color:#002b36"/>
+
+				<widget class_="text" text_="{@num_changed}/{@num_total} companies have changed"
+					halign_="center"  invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:arial;
+							color:color:#002b36"/>
+
+				<widget class_="text" text_="{@num_none} companies no longer have access to any tickers"
+					halign_="center" invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:arial;
+							color:color:#002b36"/>
+
+				<widget class_="text" text_="{@num_more} companies have gained tickers"
+					halign_="center" invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:arial;
+							color:color:#002b36"/>
+
+				<widget class_="text" text_="{@num_less} companies have lost tickers"
+					halign_="center" invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:arial;
+							color:color:#002b36"/>
+
+				<widget class_="text" text_="{@num_same_but_different} companies have the same number of tickers, but those tickers have changed"
+					halign_="center" invmode_="hide" require_="{@access_summary_visible}" 
+					refreshon_="{@refresh_grids&@access_summary_visible}" 
+					style_="font-family:arial;
+							color:color:#002b36"/>
+
+				<layout arrange_="h" 
+					halign_="center">
+
+					<widget class_="button" type_="submit" text_="Back" 
+						invmode_="hide" require_="{@access_summary_visible}" submit_="show_hierarchy_effect"/>
+
+					<widget class_="button" type_="submit" text_="Next" 
+						invmode_="hide" require_="{@access_summary_visible}" submit_="show_access_full"/>
+				</layout>
+			</layout>
+
+			<layout name_="access_full" 
+				arrange_="v" 
+				background_="#eee8d5">
+
+				<widget class_="grid" label_="Access to remove" type_="scroll" width_="1080" 
+					invmode_="hide" require_="{@access_full_visible}" 
+					refreshon_="{@refresh_grids&@access_full_visible}" rowcol_="0">
+
+					<insert block="access_cascade_deletions" nrow="{@nrow}" dataset="{@dataset}"/>
+				</widget>
+
+				<widget class_="grid" label_="Additions to filter" type_="scroll" width_="1080" 
+					invmode_="hide" require_="{@access_full_visible}" 
+					refreshon_="{@refresh_grids&@access_full_visible}" rowcol_="0">
+
+					<insert block="filters_cascade_insertions"/>
+				</widget>
+
+				<layout arrange_="h">
+
+					<widget class_="button" type_="submit" text_="Back" 
+						invmode_="hide" require_="{@access_full_visible}" submit_="show_access_summary"/>
+
+					<widget class_="button" type_="submit" text_="Save changes" 
+						invmode_="hide" require_="{@access_full_visible}" submit_="commit_hierarchies_update"/>
+				</layout>
+			</layout>
+		</layout>
+	</block>
+</library>
+
+<block name="filter_manager">
+	<dynamic
+		not_unique_flag = "0"
+		exists_flag		= "0"
+		current_compid	= ""
+		new_compid 		= ""
+
+		illegal_insert_flag = "0"
+		company_list = "','"
+		node_list = "'none.all'"
+		selected_nodes = "{lst(lst(pkg('key'; lst())))}"
+		exp_path = ""
+		mode = "Hierarchy"
+		redaction_mode = "Absolute"
+		access_start = ""
+		access_end = ""
+		redaction_start = ""
+		redaction_end = ""
+
+		cm_key = "'none.all'"
+		cm_dataset = "none"
+		cm_node = "all"
+
+		tree_height = ""
+		nrow = ""
+
+		stage_hierarchy = "0"
+
+		new_hierarchy = "<%= root_path %>.dataset_configs.test.raw_hierarchy"
+
+		dataset_folder = ""
+		dataset = ""
+
+		current_node = ""
+		new_node = ""
+
+		has_tickers = "0"
+		is_leaf_flag= "0"
+
+		temp_path = ""
+		gettab_result = ""
+		id = ""
+
+		at_least_one_hier_update="0"
+		refresh_grids = "0"
+
+		hierarchy_effect_visible="1"
+		access_summary_visible="0"
+		access_full_visible="0"
+
+		num_total = "0"
+		num_more = "0"
+		num_less = "0"
+		num_none = "0"
+		num_same_but_different = "0"
+		num_changed = "0"
+
+		save_path = ""
+		save_title = ""
+
+		audit_path=""
+		log_table=""
+		action=""
+
+		table_to_archive=""
+		archive_table_name=""
+		archive_path=""
+
+		root="none.all">
+
+		<insert block="companies_controller"/>
+		<insert block="access_controller"/>
+		<insert block="hierarchies_controller"/>
+
+		<layout height_="93%" width_="98%" padding_="10" 
+			arrange_="v" halign_="center"
+			background_="#fdf6e3">
+
+			<widget class_="text" text_="Filter Manager" height_="24" padding_="0" 
+				style_="font-family:'Lucida Console', Monaco, monospace;
+							font-size:13pt;color:#002b36;"/>
+			<layout label_= "Filter Manager" type_="tabpanel" height_="100%" width_="100%" 
+				arrange_="h" halign_="left" 
+				background_="#eee8d5">
+
+				<layout label_= "Companies" type_="splitter" height_="99.8%" width_="99.9%" 
+					arrange_="h" 
+					background_="#eee8d5">
+
+					<insert block="companies_view"/>
+				</layout>
+				
+				<layout label_= "Access" type_="splitter" height_="99.8%" width_="99.9%"
+					arrange_="h">
+
+					<insert block="access_view"/>
+				</layout>
+
+				<layout label_= "Hierarchies" type_="splitter" height_="99.8%" width_="99.9%"
+					arrange_="h">
+
+					<insert block="hierarchies_view"/>
+				</layout>
+			</layout>
+		</layout>
+
+		<render theme_="silver"/> 
+		<insert block="style"/>
+	</dynamic>
+</block>

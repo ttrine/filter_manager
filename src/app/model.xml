@@ -1,0 +1,1226 @@
+<library>
+<note> Companies </note>
+	<block name="synch_companies">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.companies</name>
+			<ops>
+				<loop with_="folder" mode_="merge">
+				    <outer>
+				        <directory folder="<%= root_path %>.dataset_configs"/>
+				    </outer>
+				    <inner>
+				        <base table="{@folder.path}.companies"/>
+				    </inner>
+				</loop>
+				<merge table2="<%= root_path %>.system_data.companies"/>
+				<sel value="g_first1(compid;;)"/>
+				<sort col="compid"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.companies" save_title="Companies"/></do>
+		<insert block="save"/>
+	</block>
+
+	<block name="non_null_constraint">
+		<do>
+			<if test="{strcmp(@new_compid;'';0)=0}">
+				<signal msg="Field 'New compid' is required."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="unique_constraint">
+		<do base_="<%= root_path %>.system_data.companies" value1_="@not_unique_flag" row1="1" col1="1">
+			<willbe name="is_identical" value="compid='{@new_compid}'"/>
+			<tabu label="is_unique">
+				<tcol source="is_identical" fun="sum" name="not_unique"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{@not_unique_flag}">
+				<signal msg="This compid is already present in the database."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="current_compid_exists_constraint">
+		<do base_="<%= root_path %>.system_data.companies" value1_="@exists_flag" row1="1" col1="1">
+			<willbe name="is_identical" value="compid='{@current_compid}'"/>
+			<tabu label="exists">
+				<tcol source="is_identical" fun="sum" name="not_unique"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{~@exists_flag}">
+				<signal msg="Current compid not found in the database."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="insert">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.companies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.dummy"/>
+				<willbe name="compid" value="'{@new_compid}'"/>
+				<colord cols="compid"/>
+				<merge table2="<%= root_path %>.system_data.companies" match="order"/>
+				<sort col="compid"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.companies" save_title="Companies"/></do>
+		<insert block="save"/>
+		<do><set log_table="Companies Transaction Log" audit_path="<%= root_path %>.audit.system_data.companies_transaction_log" action="Add"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.companies" archive_table_name="Companies Archive" archive_path="<%= root_path %>.audit.system_data.companies_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="update">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.companies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.companies"/>
+				<willbe name="compid2" value="if(compid='{@current_compid}';'{@new_compid}';compid)"/>
+				<colord cols="compid2"/>
+				<merge/>
+				<willbe name="compid" value="compid2"/>
+				<colord cols="compid"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.companies" save_title="Companies"/></do>
+		<insert block="save"/>
+		<do><set log_table="Companies Transaction Log" audit_path="<%= root_path %>.audit.system_data.companies_transaction_log" action="Modify"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.companies" archive_table_name="Companies Archive" archive_path="<%= root_path %>.audit.system_data.companies_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="cascade_update">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<willbe name="compid2" value="if(compid='{@current_compid}';'{@new_compid}';compid)"/>
+				<colord hide="compid"/>
+				<merge/>
+				<willbe name="compid" value="compid2"/>
+				<colord cols="compid,dataset,node,ticker_based,access_start,access_end,redaction_start,redaction_end"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.access" save_title="Access"/></do>
+		<insert block="save"/>
+	</block>
+
+<note> Access </note>
+	<block name="generate_querytree">
+		<base table="<%= root_path %>.system_data.hierarchies"/>
+		<layer name="layer_0">
+			<sel value="level=0"/>
+			<colord cols="key,node"/>
+		</layer>
+		<for i="1" to="{@tree_height}">
+			<layer name="layer_{@i}">
+				<insert block="get_children" key="{@exp_path.{@i}}"/>
+				<colord cols="key,node"/>
+			</layer>
+		</for>
+	</block>
+
+	<block name="get_companies">
+		<base table="<%= root_path %>.system_data.companies"/>
+		<willbe name="quoted" value="splice('\'' compid '\'';'')"/>
+		<colord cols="quoted, compid"/>
+	</block>
+
+	<note> Grant </note>
+
+	<block name="legal_ticker_insert_constraint" node_list="" company_list="">
+		<do base_="<%= root_path %>.system_data.access" value1_="@illegal_insert_flag" row1="1" col1="1">
+			<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+			<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" expand="1">
+				<insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+				<colord cols="dataset,node,node_ancestor"/>
+			</link>
+			<willbe name="key_ancestor" value="if(node_ancestor='all';'none.all';splice(dataset node_ancestor;'.'))"/>
+			<willbe name="ancestor_is_key" value="g_position(compid;;;key;key_ancestor)>0"/>
+			<tabu label="illegal_insert">
+				<tcol fun="hi" source="ancestor_is_key"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{@illegal_insert_flag}">
+				<signal msg="Error: It appears that you are trying to perform a ticker-based grant on one or more companies that currently have hierarchy-based access. To continue, please revoke from these companies access to all non-ticker nodes."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="non_empty_lists_check">
+		<do>
+			<if test="{csl_len(@node_list)=0 | csl_len(@company_list)=0}">
+				<signal msg="Please select at least one node and company first."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="access_difference" node_list="" company_list="">
+		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
+			<then>
+				<base table="<%= root_path %>.system_data.companies"/>
+				<sel value="compid={@company_list}"/>
+				<willbe name="dummy" value="1"/>
+				<link table2="<%= root_path %>.system_data.hierarchies" col="dummy" expand="1">
+					<if test="{'{@mode}'='Ticker'}">
+						<then>
+							<insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+							<sel value="key={@node_list}"/>
+							<colord cols="dataset,leaf"/>
+							<sel value="g_first1(dataset,leaf;;)"/>
+							<merge/>
+							<willbe name="node" value="leaf"/>
+						</then>
+						<else>
+							<sel value="key={@node_list}"/>
+						</else>
+					</if>
+					<willbe name="dummy" value="1"/>
+					<colord cols="dataset,node,key,dummy"/>
+				</link>
+				<colord hide="dummy"/>
+				<note> These ifs are necessary because an empty dynamic variable registers as an omission of the 'value' argument in the willbe. </note>
+				<if test="{'{@access_start}'=''}">
+					<then><willbe name="access_start" value="na"/></then>
+					<else><willbe name="access_start" value="{@access_start}"/></else>
+				</if>
+				<if test="{'{@access_end}'=''}">
+					<then><willbe name="access_end" value="na"/></then>
+					<else><willbe name="access_end" value="{@access_end}"/></else>
+				</if>
+				<if test="{'{@redaction_start}'=''}">
+					<then><willbe name="redaction_start" value="na"/></then>
+					<else><willbe name="redaction_start" value="{@redaction_start}"/></else>
+				</if>
+				<if test="{'{@redaction_end}'=''}">
+					<then><willbe name="redaction_end" value="na"/></then>
+					<else><willbe name="redaction_end" value="{@redaction_end}"/></else>
+				</if>
+				<merge/>
+				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="exclude"/>
+			</then>
+			<else>
+				<meta>empty</meta>
+				<base table="<%= root_path %>.system_data.access"/>
+				<sel value="i_=-1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="prune">
+		<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" expand="1">
+			<insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+			<colord cols="dataset,node,node_ancestor"/>
+		</link>
+		<willbe name="key_ancestor" value="if(node_ancestor='all';'none.all';splice(dataset node_ancestor;'.'))"/>
+		<willbe name="ancestor_is_key" value="g_position(compid;;;key;key_ancestor)>0"/>
+		<sel value="~g_or(compid key;;ancestor_is_key)"/>
+		<sel value="g_first1(compid key;;)"/>
+		<colord hide="node_ancestor,ancestor_is_key,key,key_ancestor"/>
+	</block>
+
+	<block name="proposed_grant_table" node_list="" company_list="">
+		<insert block="access_difference" node_list="{@node_list}" company_list="{@company_list}"/>
+		<merge table2="<%= root_path %>.system_data.access">
+			<willbe name="key" value="splice(dataset node;'.')"/>
+		</merge>
+		<if test="{'{@mode}'='Hierarchy'}">
+			<insert block="prune"/>
+		</if>
+	</block>
+
+	<block name="grant_unchanged" node_list="" company_list="">
+		<meta>empty</meta>
+		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
+			<then>
+				<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="include"/>
+				<sel value="compid={@company_list}"/>
+				<if test="{'{@mode}'='Ticker'}">
+					<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node"/>
+					<sel value="size=0"/>
+					<colord hide="pre,level,size,post,ancestor_is_node"/>
+				</if>
+				<sel value="key={@node_list}"/>
+			</then>
+			<else>
+				<base table="<%= root_path %>.system_data.access"/>
+				<sel value="i_=-1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="grant_insertions" node_list="" company_list="">
+		<meta>empty</meta>
+		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
+			<then>
+				<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="exclude"/>
+			</then>
+			<else>
+				<base table="<%= root_path %>.system_data.access"/>
+				<sel value="i_=-1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="grant_deletions" node_list="" company_list="">
+		<meta>empty</meta>
+		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
+			<then>
+				<base table="<%= root_path %>.system_data.access"/>
+				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="exclude">
+					<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+				</link>
+			</then>
+			<else>
+				<base table="<%= root_path %>.system_data.access"/>
+				<sel value="i_=-1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="grant">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.access"/>
+				<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.access" save_title="Access"/></do>
+		<insert block="save"/>
+		<do><set log_table="Access Transaction Log" audit_path="<%= root_path %>.audit.system_data.access_transaction_log" action="Grant"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.access" archive_table_name="Access Archive" archive_path="<%= root_path %>.audit.system_data.access_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<note> Revoke </note>
+
+	<block name="proposed_revoke_table" node_list="" company_list="">
+		<base table="<%= root_path %>.system_data.access"/>
+		<link table2="<%= root_path %>.system_data.companies" col="compid,dataset,node" type="exclude">
+			<sel value="compid={@company_list}"/>
+			<willbe name="dummy" value="1"/>
+			<link table2="<%= root_path %>.system_data.hierarchies" col="dummy" expand="1" col2="dummy" shift="0">
+				<sel value="key={@node_list}"/>
+				<willbe name="dummy" value="1"/>
+				<colord cols="dataset,node,dummy"/>
+			</link>
+			<colord hide="dummy"/>
+		</link>
+	</block>
+
+	<block name="revoke_deletions" node_list="" company_list="">
+		<meta>empty</meta>
+		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
+			<then>
+				<base table="<%= root_path %>.system_data.access"/>
+				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node" type="exclude">
+					<insert block="proposed_revoke_table" node_list="{@node_list}" company_list="{@company_list}"/>
+				</link>
+			</then>
+			<else>
+				<base table="<%= root_path %>.system_data.access"/>
+				<sel value="i_=-1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="revoke">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.access"/>
+				<insert block="proposed_revoke_table" node_list="{@node_list}" company_list="{@company_list}"/>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.access" save_title="Access"/></do>
+		<insert block="save"/>
+		<do><set log_table="Access Transaction Log" audit_path="<%= root_path %>.audit.system_data.access_transaction_log" action="Revoke"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.access" archive_table_name="Access Archive" archive_path="<%= root_path %>.audit.system_data.access_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<note> Misc. </note>
+
+	<block name="view" node_list="" company_list="">
+		<note> Show everything if nothing is selected, otherwise show selection. </note>
+		<base table="<%= root_path %>.system_data.access"/>
+		<willbe name="key" value="splice(dataset node;'.')"/>
+		<if test="{strcmp(@company_list;'';0)<>0}">
+			<then>
+				<if test="{strcmp(@node_list;'';0)<>0}">
+					<then>
+						<sel value="compid={@company_list}&key={@node_list}"/>
+					</then>
+					<else>
+						<sel value="compid={@company_list}"/>
+					</else>
+				</if>
+			</then>
+		</if>
+		<colord hide="key"/>
+	</block>
+
+	<block name="company_metrics_main">
+		<base table="<%= root_path %>.system_data.companies"/>
+	    <note>Prepare table</note>
+	    <sel value="compid={@company_list}"/>
+	    <willbe name="key" value="{@cm_key}"/>
+	    <note>Count total children</note>
+	    <link table2="<%= root_path %>.system_data.hierarchies" col="key" col2="parent" cols="dataset,node,total_children_raw" expand="1">
+	        <insert block="get_children" key="{{@cm_key}}"/>
+	        <willbe name="parent" value="{@cm_key}"/>
+	        <link table2="<%= root_path %>.system_data.hierarchies" col="key" col2="key_ancestor" cols="total_children_raw">
+	            <insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	            <sel value="level=level_ancestor+1"/>
+	            <willbe name="total_children_raw" value="g_cnt(key_ancestor;)"/>
+	        </link>
+	    </link>
+	    <note>Count children to which each company has access</note>
+	    <link table2="<%= root_path %>.system_data.hierarchies" col="compid,dataset,node" col2="compid,dataset,node" cols="access_children_raw" expand="1">
+	        <insert block="get_children" key="{{@cm_key}}"/>
+	        <willbe name="parent" value="{@cm_key}"/>
+	        <link table2="<%= root_path %>.system_data.hierarchies" col="key" col2="key_ancestor" cols="compid,access_children_raw">
+	            <insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	            <sel value="level=level_ancestor+1"/>
+	            <link table2="<%= root_path %>.system_data.access" col="dataset,node" cols="compid" type="select" expand="1">
+	                <sel value="compid={@company_list}"/>
+	            </link>
+	            <willbe name="access_children_raw" value="g_cnt(compid key_ancestor;)"/>
+	        </link>
+	    </link>
+	    <note>Count total leaves</note>
+	    <link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" cols="total_leaves_raw">
+	        <insert block="get_children" key="{{@cm_key}}"/>
+	        <willbe name="parent" value="{@cm_key}"/>
+	        <link table2="<%= root_path %>.system_data.hierarchies" col="key" cols="total_leaves_raw">
+	            <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	            <willbe name="total_leaves_raw" value="g_cnt(dataset node;)"/>
+	        </link>
+	    </link>
+	    <note>Count leaves to which each company has access</note>
+	    <link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" cols="access_leaves_raw">
+	        <insert block="get_children" key="{{@cm_key}}"/>
+	        <willbe name="parent" value="{@cm_key}"/>
+	        <link table2="<%= root_path %>.system_data.hierarchies" col="key" cols="access_leaves_raw">
+	            <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	            <link table2="<%= root_path %>.system_data.hierarchies" col="key" cols="access_leaves_raw">
+	                <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	                <link table2="<%= root_path %>.system_data.filters" col="dataset,leaf" col2="dataset,node" cols="compid" type="select" expand="1">
+	                    <sel value="compid={@company_list}"/>
+	                </link>
+	                <willbe name="access_leaves_raw" value="g_cnt(compid dataset node;)"/>
+	            </link>
+	        </link>
+	    </link>
+	    <note>Cleanup</note>
+	    <willbe name="total_children" value="if(total_children_raw=na;0;total_children_raw)"/>
+	    <willbe name="children_permissioned_to_company" value="if(access_children_raw=na;0;access_children_raw)"/>
+	    <willbe name="total_leaves" value="if(total_leaves_raw=na;0;total_leaves_raw)"/>
+	    <willbe name="leaves_permissioned_to_company" value="if(access_leaves_raw=na;0;access_leaves_raw)"/>
+	    <colord cols="compid,dataset,node,access_children,total_children,access_leaves,total_leaves"/>
+	</block>
+
+	<block name="company_metrics_access_leaves">
+	    <base table="<%= root_path %>.system_data.hierarchies"/>
+	    <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	    <sel value="key={@cm_key}"/>
+	    <link table2="<%= root_path %>.system_data.filters" col="dataset,leaf" col2="dataset,node" type="include">
+	        <sel value="compid={@company_list}"/>
+	    </link>
+	    <colord cols="leaf"/>
+	</block>
+
+	<block name="company_metrics_no_access_leaves">
+	    <base table="<%= root_path %>.system_data.hierarchies"/>
+	    <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+	    <sel value="key={@cm_key}"/>
+	    <link table2="<%= root_path %>.system_data.filters" col="dataset,leaf" col2="dataset,node" type="exclude">
+	        <sel value="compid={@company_list}"/>
+	    </link>
+	    <colord cols="leaf"/>
+	</block>
+
+<note> Hierarchies </note>
+
+	<note> Constraints </note>
+	<block name="dataset_selected_constraint">
+		<do>
+			<if test="{strcmp(@dataset;'';0)=0}">
+				<signal msg="Please select a dataset first."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="leaf_node_constraint">
+		<do base_="<%= root_path %>.system_data.hierarchies" value1_="@is_leaf_flag" row1="1" col1="1">
+			<insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+			<willbe name="is_identical" value="dataset='{@dataset}'&leaf='{@current_node}'"/>
+			<tabu label="exists">
+				<tcol source="is_identical" fun="sum" name="not_unique"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{@is_leaf_flag>0}">
+				<signal msg="Illegal operation: Current node either isn't present in the database, or is a leaf node."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="non_null_node_constraint">
+		<do>
+			<if test="{strcmp(@new_node;'';0)=0}">
+				<signal msg="Field 'New node' is required."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="unique_node_constraint">
+		<do base_="<%= root_path %>.system_data.hierarchies" value1_="@not_unique_flag" row1="1" col1="1">
+			<willbe name="is_identical" value="dataset='{@dataset}'&node='{@new_node}'"/>
+			<tabu label="is_unique">
+				<tcol source="is_identical" fun="sum" name="not_unique"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{@not_unique_flag}">
+				<signal msg="This node is already present in the database."/>
+			</if>
+		</do>
+	</block>
+
+	<note> Tree conversion </note>
+	<block name="left_align" nrow="" ncol="" col_list="root" row_list="m0_new">
+		<set col_list="{splice('{@col_list}' 'd0';',')}"/>
+		<for i="1" to="{@ncol}">
+			<set col_list="{splice('{@col_list}' 'd{@i}';',')}"/>
+		</for>
+		<willbe name="d0" value="'{@dataset}'"/>
+
+		<set nums="0 1 2 3 4 5 6 7 8 9"/>
+		<set letters="'a','b','c','d','e','f','g','h','i','j'"/>
+		<for i="0" to="{@ncol-1}">
+			<willbe name="d{@i + 1}" value="{decode({@i};{@nums};{@letters})}"/>
+		</for>
+		<colord cols="{@col_list}"/>
+	</block>
+
+	<block name="convert" ncol="" col_list="root" size_list="root_size" called_by_sched="0">
+		<note> Preprocessing - get tree depth, create column list and root node </note>
+		<if test="{~@called_by_sched}">
+			<set ncol="{max({tabledata('<%= root_path %>.system_data.temp.new_raw_hierarchy';'ncols';)};{tabledata('<%= root_path %>.system_data.raw_hierarchies';'ncols';)})}"/>
+		</if>
+		<set col_list="{splice('{@col_list}' 'd0';',')}"/>
+		<set size_list="{splice('{@size_list}' 'd0_size';',')}"/>
+		<for i="1" to="{@ncol-1}">
+			<set col_list="{splice('{@col_list}' 'd{@i}';',')}"/>
+			<set size_list="{splice('{@size_list}' 'd{@i}_size';',')}"/>
+		</for>
+		<insert block="compute_unlaunched_against_current"/>
+		<if test="{@has_tickers}">
+			<insert block="compute_unlaunched_against_new" col_list="{@col_list}"/>
+		</if>
+		<willbe name="root" value="'all'"/>
+		<sort cols="{@col_list}"/>
+
+		<note> Get size of each subtree at each depth </note>
+		<willbe name="d{@ncol - 1}_size" value="0"/>
+		<willbe name="d{@ncol - 1}_first" value="g_first1(d{@ncol - 1} d0;;)"/>
+		<for i="{@ncol - 2}" to="0" by="-1">
+			<willbe name="d{@i}_size" value="g_ucnt(d{@i} d0;;d{@i + 1}) + g_sum(d{@i} d0; d{@i + 1}_first; d{@i + 1}_size)"/>
+			<willbe name="d{@i}_first" value="g_first1(d{@i} d0;;)"/>
+		</for>
+    	<willbe name="root_size" value="g_ucnt(root;;d0) + g_sum(root; d0_first; d0_size)"/>
+    	<willbe name="root_first" value="g_first1(root;;)"/>
+
+		<note> Expand by height of each leaf, preserving computed information </note>
+		<willbe name="spliced_nodes" value="splice({@col_list};',')"/>
+		<willbe name="spliced_sizes" value="splice({@size_list};',')"/>
+
+		<willbe name="height" value="csl_len(strtrim(strsort(spliced_nodes;',';0;1); ','; 0; 1))"/>
+		<sel value="height" expand="1"/>
+		<willbe name="factor" value="ii_(1)"/>
+
+		<note> Get diagonal of expansion of each row </note>
+		<willbe name="node" value="strpick(spliced_nodes;',';factor)"/>
+		<willbe name="size" value="int(strpick(spliced_sizes;',';factor))"/>
+
+		<note> Distil into pre-order </note>
+		<sel value="g_first1(node d0;;)"/>
+		<sel value="node<>'all'|g_first1(node;;)"/>
+
+		<note> Compute pre, level, and post </note>
+		<willbe name="pre" value="i_(0)"/>
+		<willbe name="level" value="factor-1"/>
+		<willbe name="neg_level" value="-level"/>
+		<willbe name="post" value="int(r_sum(pre size neg_level;))"/>
+
+		<note> Display result in standard format </note>
+		<willbe name="dataset" value="if(node='all';'none';d0)"/>
+		<willbe name="key" value="splice(dataset node;'.')"/>
+		<colord cols="dataset,node,key,pre,level,size,post"/>
+	</block>
+
+	<note> Tree queries </note>
+	<block name="get_height">
+		<base table="<%= root_path %>.system_data.hierarchies"/>
+		<tabu label="tree_height">
+			<tcol fun="hi" source="level"/>
+		</tabu>
+	</block>
+
+	<block name="get_children" key="">
+		<willbe name="sel" value="if(key='{@key}';1;0)"/>
+		<willbe name="pre_val" value="g_sum(;sel;pre)"/>
+		<willbe name="post_val" value="g_sum(;sel;post)"/>
+		<willbe name="level_val" value="g_sum(;sel;level)"/>
+		<sel value="pre > pre_val & post < post_val & level = level_val + 1"/>
+	</block>
+
+	<block name="get_parent" key="">
+		<note> Base case: Define root as its own parent </note>
+		<if test="{strcmp({@key};'none.all';0)=0}">
+			<then>
+				<sel value="key='none.all'"/>
+			</then>
+			<else>
+				<willbe name="sel" value="if(key={@key};1;0)"/>
+				<willbe name="pre_val" value="g_sum(;sel;pre)"/>
+				<willbe name="post_val" value="g_sum(;sel;post)"/>
+				<willbe name="level_val" value="g_sum(;sel;level)"/>
+				<sel value="pre < pre_val & post > post_val & level = level_val - 1"/>
+			</else>
+		</if>
+	</block>
+
+	<block name="path_table" hierarchies_table="">
+		<sel value="if(level=0;1;level)" expand="1"/>
+		<willbe name="level_ancestor" value="ii_(0)"/>
+		<link table2="{@hierarchies_table}" col="level_ancestor" col2="level" suffix="_ancestor" expand="1"/>
+		<sel value="pre_ancestor<pre&post_ancestor>post"/>
+	</block>
+
+	<block name="leaf_table" hierarchies_table="">
+		<insert block="path_table" hierarchies_table="{@hierarchies_table}"/>
+		<sel value="size=0"/>
+		<colord cols="dataset,node_ancestor,node"/>
+		<note> Set leaves as their own descendants. This ensures any leaves in access make it into filters. </note>
+		<merge table2="{@hierarchies_table}">
+			<sel value="size=0"/>
+			<willbe name="node_ancestor" value="node"/>
+		</merge>
+		<note> Cleanup - make names more accessible. </note>
+		<willbe name="leaf" value="node"/>
+		<colord hide="node"/>
+		<merge/>
+		<willbe name="node" value="node_ancestor"/>
+		<willbe name="key" value="splice(dataset node;'.')"/>
+		<colord cols="dataset,node,key,leaf"/>
+		<sort col="node_ancestor" dir="up"/>
+	</block>
+
+	<note> Update hierarchy </note>
+	<block name="save_new_raw_hierarchy">
+		<do base_="{@temp_path}" action_="api" api_="query">
+			<name>{@temp_path}</name>
+			<base table="{@temp_path}"/>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.temp.new_raw_hierarchy" save_title="New Raw Hierarchy"/>
+		</do>
+		<insert block="save"/>
+
+		<note>Write metadata to table</note>
+		<do action_="api" api_="gettab" value_="@gettab_result">
+			<name>{@save_path}</name>
+		</do>
+		<do>
+			<set id="{@gettab_result..tab['id']._or_empty}"/>
+		</do>
+		<do action_="api" api_="puttab">
+			<tab id="{@id}" title="{@save_title}" users="{@username_}"/>
+		</do>
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<base table="<%= root_path %>.system_data.temp.new_raw_hierarchy"/>
+		</do>
+		<do base_="<%= root_path %>.system_data.raw_hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.raw_hierarchies</name>
+			<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+		</do>
+		<note> Left-align the hierarchy </note>
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<ops>
+				<letseq nsegs="{tabledata('<%= root_path %>.system_data.temp.new_raw_hierarchy';'nsegs';)}" nrow="{int(tabledata('<%= root_path %>.system_data.temp.new_raw_hierarchy';'dataloc_to';@~nsegs-1))+1}" ncol="{tabledata('<%= root_path %>.system_data.temp.new_raw_hierarchy';'ncols';)}">
+					<insert block="left_align" nrow="{@nrow}" ncol="{@ncol}"/>
+				</letseq>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.temp.new_raw_hierarchy" save_title="New Raw Hierarchy"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="compute_unlaunched_against_current">
+		<note> Infer unlaunched from each dataset folder and, last of all, the new dataset hierarchy </note>
+		<merge table2="<%= root_path %>.system_data.dummy" match="pad">
+			<loop with_="tickers_table" mode_="merge">
+				<outer>
+					<directory folder="<%= root_path %>.dataset_configs" depth="2"/>
+					<sel value="title='Tickers'"/>
+					<willbe name="dataset" value="csl_pick(strsubst(path;'.';0;',');-2)"/>
+					<willbe name="raw_hierarchy_path" value="splice('<%= root_path %>.dataset_configs' dataset 'raw_hierarchy';'.')"/>
+					<colord cols="path,dataset,raw_hierarchy_path"/>
+				</outer>
+				<inner>
+					<merge table2="{@tickers_table.path}" match="pad">
+					    <link table2="{@tickers_table.raw_hierarchy_path}" col="ticker" type="exclude">
+							<loop with_="row" mode_="merge">
+								<outer>
+									<base table="{@tickers_table.raw_hierarchy_path}"/>
+								</outer>
+								<inner>
+									<note> Turn values for the row into a list of strings, then put them into a 1 column table </note>
+									<set listval=""/>
+									<foreach var="{pkg_names(@row)}">
+										<set listval="{splice('{@listval}' @row.{@var};',')}"/>
+									</foreach>
+									<set listval="{strdrop(@listval;'';1)}"/>
+									<set listval="{strsubst('{@listval}';',';0;'\',\'')}"/>
+									<set listval="{splice('\'' @listval '\'';'')}"/>
+									<table depth="{lst_len(pkg_names(@row))}"/>
+									<willbe name="m0" value="{@listval}"/>
+								</inner>
+							</loop>
+							<willbe name="ticker" value="string(m0)"/>
+							<colord hide="m0"/>
+							<sel value="g_first1(ticker;;)&ticker<>na"/>
+					    </link>
+					    <willbe name="d0" value="'{@tickers_table.dataset}'"/>
+					    <willbe name="d1" value="'unlaunched'"/>
+					    <willbe name="d2" value="ticker"/>
+					    <colord hide="ticker"/>
+					</merge>
+				</inner>
+			</loop>
+		</merge>
+		<colord hide="A"/>
+	</block>
+
+	<block name="compute_unlaunched_against_new">
+		<merge table2="<%= root_path %>.dataset_configs.{@dataset}.tickers" match="pad">
+		    <link table2="<%= root_path %>.system_data.temp.new_raw_hierarchy" col="ticker" type="exclude">
+				<loop with_="row" mode_="merge">
+					<outer>
+						<base table="<%= root_path %>.system_data.temp.new_raw_hierarchy"/>
+					</outer>
+					<inner>
+						<note> Turn values for the row into a list of strings, then put them into a 1 column table </note>
+						<set listval=""/>
+						<foreach var="{pkg_names(@row)}">
+							<set listval="{splice('{@listval}' @row.{@var};',')}"/>
+						</foreach>
+						<set listval="{strdrop(@listval;'';1)}"/>
+						<set listval="{strsubst('{@listval}';',';0;'\',\'')}"/>
+						<set listval="{splice('\'' @listval '\'';'')}"/>
+						<table depth="{lst_len(pkg_names(@row))}"/>
+						<willbe name="m0" value="{@listval}"/>
+					</inner>
+				</loop>
+				<willbe name="ticker" value="string(m0)"/>
+				<colord hide="m0"/>
+				<sel value="g_first1(ticker;;)&ticker<>na"/>
+		    </link>
+		    <willbe name="d0" value="'{@dataset}'"/>
+		    <willbe name="d1" value="'unlaunched'"/>
+		    <willbe name="d2" value="ticker"/>
+		    <colord hide="ticker"/>
+		</merge>
+		<sel value="g_first1({csl_drop(@col_list;1)};;)"/>
+	</block>
+
+	<block name="has_tickers">
+		<do value_="has_tickers" row_="1" col_="1">
+			<note> Check if the dataset being modified has a Tickers table </note>
+			<directory folder="{@dataset_folder}"/>
+			<willbe name="sel" value="title='Tickers'"/>
+			<willbe name="has_tickers" value="g_sum(;;sel)"/>
+			<colord cols="has_tickers"/>
+		</do>
+	</block>
+
+	<block name="save_proposed_raw_hierarchies_table">
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+				<meta>empty</meta>
+				<sel value="d0<>'{@dataset}'"/>
+				<merge table2="<%= root_path %>.system_data.temp.new_raw_hierarchy" match="pad"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.temp.new_raw_hierarchies" save_title="New Raw Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="save_proposed_hierarchies_table">
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchies</name>
+			<ops>
+				<import path="<%= root_path %>.model"/>
+				<loop with_="open_tab">
+					<outer>
+						<base table="<%= root_path %>.system_data.temp.new_raw_hierarchies"/>
+						<sel value="i_()=1"/>
+					</outer>
+					<inner>
+						<base table="<%= root_path %>.system_data.temp.new_raw_hierarchies"/>
+						<set tab="<%= root_path %>.system_data.temp.new_raw_hierarchies"/>
+						<letseq nsegs="{tabledata(@tab;'nsegs';)}" nrow="{int(tabledata(@tab;'dataloc_to';@~nsegs-1))+1}" ncol="{tabledata(@tab;'ncols';)}">
+							<insert block="convert" called_by_sched="1" nrow="{@nrow}" ncol="{@ncol}" has_tickers="0"/>
+						</letseq>
+					</inner>
+				</loop>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.temp.new_hierarchies" save_title="New Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="hierarchy_insertions" nrow="" dataset="">
+		<meta>empty</meta>
+		<base table="<%= root_path %>.system_data.temp.new_hierarchies"/>
+		<colord cols="dataset,node"/>
+		<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" type="exclude"/>
+	</block>
+
+	<block name="hierarchy_deletions" nrow="" dataset="">
+		<meta>empty</meta>
+		<base table="<%= root_path %>.system_data.hierarchies"/>
+		<sel value="dataset='{@dataset}'"/>
+		<link table2="<%= root_path %>.system_data.temp.new_hierarchies" col="dataset,node" type="exclude"/>
+		<colord cols="dataset,node"/>
+	</block>
+
+	<block name="filters_cascade_summary">
+		<note> Produce new filters table & merge with old filters table </note>
+		<meta>empty</meta>
+		<base table="<%= root_path %>.system_data.access"/>
+		<link table2="<%= root_path %>.system_data.temp.new_hierarchies" col="dataset,node" type="include"/>
+		<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.temp.new_hierarchies"/>
+		<willbe name="new_filter" value="1"/>
+		<merge table2="<%= root_path %>.system_data.filters">
+		  <willbe name="new_filter" value="0"/>
+		</merge>
+
+		<note> Helper columns </note>
+		<willbe name="old_filter" value="~new_filter"/>
+		<willbe name="first_compid" value="g_first1(compid new_filter;;)"/>
+		<willbe name="num_tickers" value="g_cnt(compid new_filter;)"/>
+		<willbe name="most_tickers" value="g_hi(compid;;num_tickers)"/>
+		<willbe name="least_tickers" value="g_lo(compid;;num_tickers)"/>
+
+		<note> Count total companies </note>
+		<willbe name="num_total" value="g_sum(;old_filter;first_compid)"/>
+
+		<note> Count companies with access to more tickers </note>
+		<willbe name="has_more" value="num_tickers>least_tickers&first_compid"/>
+		<willbe name="num_more" value="g_sum(;new_filter;has_more)"/>
+
+		<note> Count companies with access to fewer tickers </note>
+		<willbe name="has_less" value="num_tickers<most_tickers&first_compid"/>
+		<willbe name="num_less" value="g_sum(;new_filter;has_less)"/>
+
+		<note> Count companies who no longer have access to any nodes </note>
+		<willbe name="has_none" value="(~g_or(compid;;new_filter))&first_compid"/>
+		<willbe name="num_none" value="g_sum(;old_filter;has_none)"/>
+
+		<note> Count companies with access to same number of tickers but the set is different </note>
+		<willbe name="has_same" value="least_tickers=most_tickers&first_compid"/>
+
+		<willbe name="key" value="splice(dataset node;'.')"/>
+		<willbe name="ticker_set" value="g_uval(compid new_filter;;key;','; 2147483646)"/>
+		<willbe name="different_set" value="g_ucnt(compid;;ticker_set)>1"/>
+
+		<willbe name="has_same_but_different" value="has_same&different_set"/>
+		<willbe name="num_same_but_different" value="g_sum(;new_filter;has_same_but_different)"/>
+
+		<note> Count total companies which have changed </note>
+		<willbe name="num_changed" value="num_more+num_less+num_none+num_same_but_different"/>
+
+		<note> Cleanup </note>
+		<colord cols="num_total,num_more,num_less,num_none,num_same_but_different,num_changed"/>
+		<sel value="i_=1"/>
+	</block>
+
+	<block name="access_cascade_deletions" nrow="" dataset="">
+		<meta>empty</meta>
+		<base table="<%= root_path %>.system_data.access"/>
+		<link table2="<%= root_path %>.system_data.temp.new_hierarchies" col="dataset,node" type="include">
+			<insert block="hierarchy_deletions" nrow="{@nrow}" new_hierarchy="{@new_hierarchy}" dataset="{@dataset}"/>
+		</link>
+	</block>
+
+	<block name="filters_cascade_insertions">
+		<meta>empty</meta>
+		<base table="<%= root_path %>.system_data.access"/>
+		<link table2="<%= root_path %>.system_data.temp.new_hierarchies" col="dataset,node" type="include"/>
+		<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.temp.new_hierarchies"/>
+		<link table2="<%= root_path %>.system_data.filters" col="compid,dataset,node" type="exclude"/>
+	</block>
+
+	<block name="replace_raw_hierarchy">
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.temp.new_raw_hierarchy"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="{@dataset_folder}.raw_hierarchy" save_title="Raw Hierarchy"/>
+		</do>
+		<do><insert block="save"/></do>
+		<do><set log_table="{@dataset} Transaction Log" audit_path="<%= root_path %>.audit.dataset_configs.{@dataset}_transaction_log" action="Update"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="{@dataset_folder}.raw_hierarchy" archive_table_name="{@dataset} Archive" archive_path="<%= root_path %>.audit.dataset_configs.{@dataset}_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="replace_raw_hierarchies">
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<base table="<%= root_path %>.system_data.temp.new_raw_hierarchy"/>
+		</do>
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_raw_hierarchy</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+				<meta>empty</meta>
+				<sel value="d0<>'{@dataset}'"/>
+				<merge table2="<%= root_path %>.system_data.temp.new_raw_hierarchy" match="pad"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.raw_hierarchies" save_title="Raw Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="replace_hierarchies">
+		<do base_="<%= root_path %>.system_data.temp.new_hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.temp.new_hierarchies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.temp.new_hierarchies"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.hierarchies" save_title="Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+		<do><set log_table="Hierarchies Transaction Log" audit_path="<%= root_path %>.audit.system_data.hierarchies_transaction_log" action="Update"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.hierarchies" archive_table_name="Hierarchies Archive" archive_path="<%= root_path %>.audit.system_data.hierarchies_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="replace_access_table">
+		<do base_="<%= root_path %>.system_data.access" action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.access"/>
+				<meta>empty</meta>
+				<link table2="<%= root_path %>.system_data.access" col="dataset,node" type="exclude">
+					<insert block="access_cascade_deletions"/>
+				</link>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.access" save_title="Access"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="replace_filters_table">
+		<do base_="<%= root_path %>.system_data.access" action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<meta>empty</meta>
+				<base table="<%= root_path %>.system_data.access"/>
+				<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node" type="include"/>
+				<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.filters" save_title="Filters"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="scheduled_unlaunched_ticker_retrieval">
+		<loop with_="open_tab">
+			<outer>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+				<sel value="i_()=1"/>
+			</outer>
+			<inner>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+				<set tab="<%= root_path %>.system_data.raw_hierarchies"/>
+				<letseq nsegs="{tabledata(@tab;'nsegs';)}" nrow="{int(tabledata(@tab;'dataloc_to';@~nsegs-1))+1}" ncol="{tabledata(@tab;'ncols';)}">
+				<insert block="convert" called_by_sched="1" nrow="{@nrow}" ncol="{@ncol}" has_tickers="0"/>
+				</letseq>
+				<materialize path="<%= root_path %>.system_data.hierarchies" replace="1" title="Hierarchies"/>
+			</inner>
+		</loop>
+	</block>
+
+	<note> Modify node </note>
+	<block name="check_each_column" col_list="d0" new_col_list="d0_new" table="">
+		<set ncol="{tabledata('{@table}';'ncols';)}"/>
+		<for i="1" to="{@ncol-1}">
+			<set col_list="{splice('{@col_list}' 'd{@i}';',')}"/>
+			<set new_col_list="{splice('{@new_col_list}' 'd{@i}_new';',')}"/>
+		</for>
+		<foreach col="{@col_list}">
+			<willbe name="{@col}_new" value="if({@col}='{@current_node}'&d0='{@dataset}';'{@new_node}';{@col})"/>
+		</foreach>
+		<colord cols="{@new_col_list}"/>
+		<merge/>
+		<foreach new_col="{@new_col_list}" tally="i">
+			<willbe name="d{@i-1}" value="{@new_col}"/>
+		</foreach>
+		<colord cols="{@col_list}"/>
+		<merge/>
+	</block>
+
+	<block name="modify_raw_hierarchy">
+		<note> The first query just opens the table, a prerequisite for using tabledata </note>
+		<do base_="{@dataset_folder}.raw_hierarchy" action_="api" api_="query">
+			<name>{@dataset_folder}.raw_hierarchy</name>
+			<ops>
+				<base table="{@dataset_folder}.raw_hierarchy"/>
+			</ops>
+		</do>
+		<do base_="{@dataset_folder}.raw_hierarchy" action_="api" api_="query">
+			<name>{@dataset_folder}.raw_hierarchy</name>
+			<ops>
+				<base table="{@dataset_folder}.raw_hierarchy"/>
+				<insert block="check_each_column" table="{@dataset_folder}.raw_hierarchy"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="{@dataset_folder}.raw_hierarchy" save_title="Raw Hierarchy"/>
+		</do>
+		<do><insert block="save"/></do>
+		<do><set log_table="{@dataset} Transaction Log" audit_path="<%= root_path %>.audit.dataset_configs.{@dataset}_transaction_log" action="Modify"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="{@dataset_folder}.raw_hierarchy" archive_table_name="{@dataset} Archive" archive_path="<%= root_path %>.audit.dataset_configs.{@dataset}_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="modify_raw_hierarchies">
+		<note> The first query just opens the table, a prerequisite for using tabledata </note>
+		<do base_="<%= root_path %>.system_data.raw_hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.raw_hierarchies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+			</ops>
+		</do>
+		<do base_="<%= root_path %>.system_data.raw_hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.raw_hierarchies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.raw_hierarchies"/>
+				<insert block="check_each_column" table="<%= root_path %>.system_data.raw_hierarchies"/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.raw_hierarchies" save_title="Raw Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="modify_hierarchies">
+		<do base_="<%= root_path %>.system_data.hierarchies" action_="api" api_="query">
+			<name><%= root_path %>.system_data.hierarchies</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.hierarchies"/>
+				<willbe name="node_new" value="if(node='{@current_node}'&dataset='{@dataset}';'{@new_node}';node)"/>
+				<colord hide="node,key"/>
+				<merge/>
+				<willbe name="node" value="node_new"/>
+				<willbe name="key" value="splice(dataset node;'.')"/>
+				<colord cols="dataset,node,key,pre,level,size,post"/>
+				<merge/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.hierarchies" save_title="Hierarchies"/>
+		</do>
+		<do><insert block="save"/></do>
+		<do><set log_table="Hierarchies Transaction Log" audit_path="<%= root_path %>.audit.system_data.hierarchies_transaction_log" action="Modify"/></do>
+		<insert block="log_transaction"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.hierarchies" archive_table_name="Hierarchies Archive" archive_path="<%= root_path %>.audit.system_data.hierarchies_archive"/></do>
+		<insert block="archive"/>
+	</block>
+
+	<block name="modify_access">
+		<do base_="<%= root_path %>.system_data.access" action_="api" api_="query">
+			<name><%= root_path %>.system_data.access</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.access"/>
+				<willbe name="node_new" value="if(node='{@current_node}'&dataset='{@dataset}';'{@new_node}';node)"/>
+				<colord hide="node"/>
+				<merge/>
+				<willbe name="node" value="node_new"/>
+				<colord cols="compid,dataset,node,access_start,access_end,redaction_start,redaction_end"/>
+				<merge/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.access" save_title="Access"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+	<block name="modify_filters">
+		<do base_="<%= root_path %>.system_data.filters" action_="api" api_="query">
+			<name><%= root_path %>.system_data.filters</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.filters"/>
+				<willbe name="node_new" value="if(node='{@current_node}'&dataset='{@dataset}';'{@new_node}';node)"/>
+				<colord hide="node"/>
+				<merge/>
+				<willbe name="node" value="node_new"/>
+				<colord cols="compid,dataset,node,access_start,access_end,redaction_start,redaction_end"/>
+				<merge/>
+			</ops>
+		</do>
+		<do>
+			<set save_path="<%= root_path %>.system_data.filters" save_title="Filters"/>
+		</do>
+		<do><insert block="save"/></do>
+	</block>
+
+<note> Audit </note>
+	<block name="log_transaction">
+		<do action_="api" api_="query">
+			<name>{@audit_path}</name>
+			<ops>
+				<base table="{@audit_path}"/>
+				<merge table2="<%= root_path %>.system_data.dummy" match="order">
+					<table depth="1"/>
+					<willbe name="username" value="'{@username_}'"/>
+					<willbe name="timestamp" value="{@now_}"/>
+					<willbe name="action" value="'{@action}'"/>
+				</merge>
+			</ops>
+		</do>
+		<do><set save_path="{@audit_path}" save_title="{@log_table}"/></do>
+		<insert block="save"/>
+	</block>
+
+	<block name="archive">
+		<do action_="api" api_="query">
+			<name>{@archive_path}</name>
+			<ops>
+				<base table="{@archive_path}"/>
+				<merge table2="{@table_to_archive}" match="pad">
+					<willbe name="username" value="'{@username_}'"/>
+					<willbe name="timestamp" value="{@now_}"/>
+				</merge>
+			</ops>
+		</do>
+		<do><set save_path="{@archive_path}" save_title="{@archive_table_name}"/></do>
+		<insert block="save"/>
+	</block>
+
+	<block name="scheduled_backup">
+		<note>Backup system data</note>
+		<loop with_="table">
+			<outer>
+				<directory folder="<%= root_path %>.audit.system_data"/>
+			</outer>
+			<inner>
+				<set dot_delim="{str_to_lst(@table.path;'.')}"/>
+				<set table_name="{@dot_delim[lst_len(@dot_delim)]}"/>
+				<base table="{@table.path}"/>
+				<materialize path="<%= root_path %>.secure_location.system_data.{@table_name}_backup" replace="1" title="{@table_name}_backup"/>
+			</inner>
+		</loop>
+
+		<note>Backup dataset configs</note>
+		<loop with_="table">
+			<outer>
+				<directory folder="<%= root_path %>.audit.dataset_configs"/>
+			</outer>
+			<inner>
+				<set dot_delim="{str_to_lst(@table.path;'.')}"/>
+				<set table_name="{@dot_delim[lst_len(@dot_delim)]}"/>
+				<base table="{@table.path}"/>
+				<materialize path="<%= root_path %>.secure_location.dataset_configs.{@table_name}_backup" replace="1" title="{@table_name}_backup"/>
+			</inner>
+		</loop>
+	</block>
+
+<note> Utility </note>
+	<block name="save">
+		<do action_="api" api_="savetable">
+			<name mode="replace">{@save_path}</name>
+			<title>{@save_title}</title>
+			<users type="inherit"/>
+		</do>
+		<note> Tell system about the change </note>
+		<do action_="api" api_="dbupdate">
+			<path>{@save_path}</path>
+		</do>
+	</block>
+
+	<block name="compute_filters" hierarchies_table="">
+		<link table2="{@hierarchies_table}" col="dataset,node" expand="1">
+			<insert block="leaf_table" hierarchies_table="{@hierarchies_table}"/>
+		</link>
+		<colord hide="node"/>
+		<merge/>
+		<willbe name="node" value="leaf"/>
+		<colord cols="compid,dataset,node,access_start,access_end,redaction_start,redaction_end"/>
+	</block>
+
+	<block name="write_filters">
+		<do action_="api" api_="query">
+			<name><%= root_path %>.system_data.filters</name>
+			<ops>
+				<base table="<%= root_path %>.system_data.access"/>
+				<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+				<note> Add path column </note>
+				<link table2="<%= root_path %>.system_data.raw_hierarchies" col="dataset,node" col2="d0,leaf" cols="path" shift="0">
+				    <willbe name="leaf_pos_raw" value="r_position('d*';;'')-1"/>
+				    <willbe name="leaf_pos" value="if(leaf_pos_raw=na;r_cnt('d*';);leaf_pos_raw)"/>
+				    <willbe name="leaf" value="r_pick('d*';;leaf_pos)"/>
+					<willbe name="path_raw" value="r_mapstring('d*';;rcv_;',')"/>
+					<willbe name="path" value="strtake(path_raw;',';leaf_pos-1)"/>
+					<willbe name="path" value="csl_drop(strtake(path_raw;',';leaf_pos-1);1)"/>
+				</link>
+			</ops>
+		</do>
+		<do><set save_path="<%= root_path %>.system_data.filters" save_title="Filters"/></do>
+		<insert block="save"/>
+		<do><set table_to_archive="<%= root_path %>.system_data.filters" archive_table_name="Filters Archive" archive_path="<%= root_path %>.audit.system_data.filters_archive"/></do>
+		<insert block="archive"/>
+	</block>
+</library>
