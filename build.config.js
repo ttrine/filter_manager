@@ -61,15 +61,6 @@ module.exports = {
 			name: '<%= root_path %>.controller',
 			url: 'https://www2.1010data.com/cgi-bin/beta-latest/quickapp?path=<%= quick_queries.controller.name %>',
 			table: '<%= quick_queries.controller.name %>\(<%= quick_queries.controller.title %>\;\;\)=<%= basetable %>'
-		},
-
-		// System data
-		system_data: {
-			src: '<%= app_dir %>/system_data/init.xml',
-			dest: '<%= build_dir %>/app/init.xml',  // tokenize src to dest using 'template' task
-			title: 'Init',
-			name: '<%= root_path %>.system_data.init',
-			table: '<%= quick_queries.system_data.name %>\(<%= quick_queries.system_data.title %>\;\;\)=<%= basetable %>'
 		}
 	},
 
