@@ -33,7 +33,6 @@ module.exports = {
 	},
 
 	quick_queries: {
-		// Root
 		view: {
 			container: '<%= app_dir %>/hello.world.html',   // html iframe container
 			src: '<%= app_dir %>/view.xml',
@@ -66,25 +65,23 @@ module.exports = {
 
 	env_configs: {
 		developer: {},
-		ci: {
-			root_path: 'x1010data.ttrine.filter_manager.test.helloworld',
+
+		test: {
+			root_path: 'product_filter_manager',
+			login: {
+				gateway: 'http://njtest.corp.1010data.com/beta-latest/gw',
+				id: '<%= login_id %>',
+				password: '<%= login_password %>'
+			}
+		},
+
+		prod: {
+			root_path: 'product_filter_manager',
 			login: {
 				gateway: 'https://www2.1010data.com/beta-latest/gw',
 				id: '<%= login_id %>',
 				password: '<%= login_password %>'
-			},
-		},
-
-		test: {
-			root_path: 'pub.consumer_data.oi.ecom.test',
-		},
-
-		beta: {
-			root_path: 'pub.consumer_data.oi.ecom.beta',
-		},
-
-		prod: {
-			root_path: 'x1010data.ttrine.filter_manager.helloworld',
+			}
 		}
 	}
 };
