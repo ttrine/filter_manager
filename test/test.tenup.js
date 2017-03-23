@@ -4,7 +4,7 @@ var options =
 	{
 		gateway: 'https://www2.1010data.com/cgi-bin/gw.k',
 		user: 'ttrine',
-		password: 'password',
+		password: 'aMn45Z12',
 		source: 'product_filter_manager.system_data.companies',
 		table: 'x1010data.ttrine.filter_manager_dev.system_data.companies',
 		title: 'Companies'

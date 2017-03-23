@@ -34,7 +34,7 @@ module.exports = {
 
 	quick_queries: {
 		view: {
-			container: '<%= app_dir %>/hello.world.html',   // html iframe container
+			container: '<%= app_dir %>/view.html',   // html iframe container
 			src: '<%= app_dir %>/view.xml',
 			dest: '<%= build_dir %>/app/view.xml',  // tokenize src to dest using 'template' task
 			title: 'Filter Manager',
@@ -64,7 +64,14 @@ module.exports = {
 	},
 
 	env_configs: {
-		developer: {},
+		developer: {
+            root_path: 'x1010data.ttrine.filter_manager_dev',
+            login: {
+                gateway: 'https://www2.1010data.com/beta-latest/gw',
+                id: '<%= login_id %>',
+                password: '<%= login_password %>'
+            }
+		},
 
 		test: {
 			root_path: 'product_filter_manager',

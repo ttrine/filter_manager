@@ -18,7 +18,9 @@
 		"serve-index": "^1.7.3",
 		"serve-static": "^1.10.3",
 		"time-grunt": "^0.3.1",
-		"lodash": "^4.17.2"
+		"lodash": "^4.17.2",
+		"tenup": "^0.0.2",
+		"grunt-tenup": "^0.0.1"
 	},
 	"ignore": {}
 }

@@ -5,7 +5,7 @@ module.exports = function (grunt) {
 	process.env.project_dir = __dirname;
 
 	/**
-	 * Loads all config files that start with "config." (configs can export a function(grunt) or object)
+	 * Loads all confi gfiles that start with "config." (configs can export a function(grunt) or object)
 	 */
 	function loadTaskConfigs(path) {
 		var glob = require('glob');

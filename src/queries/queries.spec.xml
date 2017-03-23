@@ -1,6 +1,0 @@
-<table cols="name,id">
-    hello,1
-    world,2
-</table>
-<sel value="id='2'"/>
-<colord cols="name"/>

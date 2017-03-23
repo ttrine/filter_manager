@@ -39,8 +39,6 @@ module.exports = function (grunt) {
 			.sortBy(['depth', 'asc'])
 			.value();
 
-		console.log(folders);
-
 		var users = (options.users || '');
 		users = (users === 'inherit' || users === 'private') ? users : users.split(',').map(function(u){return u.trim()});
 		grunt.file.copy(options.template, options.dest, {
