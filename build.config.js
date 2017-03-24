@@ -3,7 +3,7 @@
  */
 module.exports = {
 	/**
-	 * The `build_dir` folder is where the projects html files are compiled too
+	 * `build_dir`: folder to which html files compile
 	 */
 	build_dir: 'build',
 	app_dir: 'src/app',
@@ -31,6 +31,19 @@ module.exports = {
 			}
 		}
 	},
+
+    root_sql_path: 'product_filter_manager',
+
+    sync_tables: {
+        companies: {
+            table_name: 'system_data.companies',
+            title: 'Companies'
+        },
+        access: {
+            table_name: 'system_data.access',
+            title: 'Access'
+        }
+    },
 
 	quick_queries: {
 		view: {

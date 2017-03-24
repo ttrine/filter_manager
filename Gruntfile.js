@@ -106,4 +106,15 @@ module.exports = function (grunt) {
 			'watch'
 		]);
 	});
+
+    var syncAll = _.chain(buildConfig['sync_tables'])
+        .reduce(function asTenupTask(acc, obj, name) {
+            acc.push({name: 'tenup:' + name, ordinal: obj.ordinal || 1});
+            return acc;
+        }, [])
+        .sortBy(['ordinal', 'asc'])
+        .map('name')
+        .value();
+
+    grunt.registerTask('sync_all', syncAll);
 };
