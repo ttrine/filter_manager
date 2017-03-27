@@ -22,6 +22,6 @@ module.exports = function (grunt) {
         },
 
         // add all of the tables defined in sync_tables
-        buildConfig['sync_tables']
+        buildConfig['data_tables']
     );
 };

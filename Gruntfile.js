@@ -107,7 +107,7 @@ module.exports = function (grunt) {
 		]);
 	});
 
-    var syncAll = _.chain(buildConfig['sync_tables'])
+    var syncAll = _.chain(buildConfig['data_tables'])
         .reduce(function asTenupTask(acc, obj, name) {
             acc.push({name: 'tenup:' + name, ordinal: obj.ordinal || 1});
             return acc;

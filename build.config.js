@@ -34,7 +34,7 @@ module.exports = {
 
     root_sql_path: 'product_filter_manager',
 
-    sync_tables: {
+    data_tables: {
         companies: {
             table_name: 'system_data.companies',
             title: 'Companies'
@@ -42,6 +42,186 @@ module.exports = {
         access: {
             table_name: 'system_data.access',
             title: 'Access'
+        },
+        hierarchies: {
+            table_name: 'system_data.hierarchies',
+            title: 'Hierarchies'
+        },
+        raw_hierarchies: {
+            table_name: 'system_data.raw_hierarchies',
+            title: 'Raw Hierarchies'
+        },
+        filters: {
+            table_name: 'system_data.filters',
+            title: 'Filters'
+        },
+        card_raw_hierarchy: {
+            table_name: 'dataset_configs.card.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        debit_raw_hierarchy: {
+            table_name: 'dataset_configs.debit.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        receipt1_raw_hierarchy: {
+            table_name: 'dataset_configs.receipt1.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        permit_raw_hierarchy: {
+            table_name: 'dataset_configs.permit.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        lmi_raw_hierarchy: {
+            table_name: 'dataset_configs.lmi.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        market_dynamics_raw_hierarchy: {
+            table_name: 'dataset_configs.market_dynamics.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        sub_tracker_raw_hierarchy: {
+            table_name: 'dataset_configs.sub_tracker.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        receipt2_raw_hierarchy: {
+            table_name: 'dataset_configs.receipt2.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        mall_raw_hierarchy: {
+            table_name: 'dataset_configs.mall.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        card_companies: {
+            table_name: 'dataset_configs.card.companies',
+            title: 'Companies'
+        },
+        debit_companies: {
+            table_name: 'dataset_configs.debit.companies',
+            title: 'Companies'
+        },
+        receipt1_companies: {
+            table_name: 'dataset_configs.receipt1.companies',
+            title: 'Companies'
+        },
+        permit_companies: {
+            table_name: 'dataset_configs.permit.companies',
+            title: 'Companies'
+        },
+        lmi_companies: {
+            table_name: 'dataset_configs.lmi.companies',
+            title: 'Companies'
+        },
+        market_dynamics_companies: {
+            table_name: 'dataset_configs.market_dynamics.companies',
+            title: 'Companies'
+        },
+        sub_tracker_companies: {
+            table_name: 'dataset_configs.sub_tracker.companies',
+            title: 'Companies'
+        },
+        receipt2_companies: {
+            table_name: 'dataset_configs.receipt2.companies',
+            title: 'Companies'
+        },
+        mall_companies: {
+            table_name: 'dataset_configs.mall.companies',
+            title: 'Companies'
+        },
+        companies_transaction_log: {
+            table_name: 'audit.system_data.companies_transaction_log',
+            title: 'Companies Transaction Log'
+        },
+        access_transaction_log: {
+            table_name: 'audit.system_data.access_transaction_log',
+            title: 'Access Transaction Log'
+        },
+        hierarchies_transaction_log: {
+            table_name: 'audit.system_data.hierarchies_transaction_log',
+            title: 'Hierarchies Transaction Log'
+        },
+        companies_archive: {
+            table_name: 'audit.system_data.companies_archive',
+            title: 'Companies Archive'
+        },
+        access_archive: {
+            table_name: 'audit.system_data.access_archive',
+            title: 'Access Archive'
+        },
+        hierarchies_archive: {
+            table_name: 'audit.system_data.hierarchies_archive',
+            title: 'Hierarchies Archive'
+        },
+        card_transaction_log: {
+            table_name: 'audit.dataset_configs.card_transaction_log',
+            title: 'card Transaction Log'
+        },
+        debit_transaction_log: {
+            table_name: 'audit.dataset_configs.debit_transaction_log',
+            title: 'debit Transaction Log'
+        },
+        receipt1_transaction_log: {
+            table_name: 'audit.dataset_configs.receipt1_transaction_log',
+            title: 'receipt1 Transaction Log'
+        },
+        permit_transaction_log: {
+            table_name: 'audit.dataset_configs.permit_transaction_log',
+            title: 'permit Transaction Log'
+        },
+        lmi_transaction_log: {
+            table_name: 'audit.dataset_configs.lmi_transaction_log',
+            title: 'lmi Transaction Log'
+        },
+        market_dynamics_transaction_log: {
+            table_name: 'audit.dataset_configs.market_dynamics_transaction_log',
+            title: 'market_dynamics Transaction Log'
+        },
+        sub_tracker_transaction_log: {
+            table_name: 'audit.dataset_configs.sub_tracker_transaction_log',
+            title: 'sub_tracker Transaction Log'
+        },
+        receipt2_transaction_log: {
+            table_name: 'audit.dataset_configs.receipt2_transaction_log',
+            title: 'receipt2 Transaction Log'
+        },
+        mall_transaction_log: {
+            table_name: 'audit.dataset_configs.mall_transaction_log',
+            title: 'mall Transaction Log'
+        },
+        card_archive: {
+            table_name: 'audit.dataset_configs.card_archive',
+            title: 'card Archive'
+        },
+        debit_archive: {
+            table_name: 'audit.dataset_configs.debit_archive',
+            title: 'debit Archive'
+        },
+        receipt1_archive: {
+            table_name: 'audit.dataset_configs.receipt1_archive',
+            title: 'receipt1 Archive'
+        },
+        permit_archive: {
+            table_name: 'audit.dataset_configs.permit_archive',
+            title: 'permit Archive'
+        },
+        lmi_archive: {
+            table_name: 'audit.dataset_configs.lmi_archive',
+            title: 'lmi Archive'
+        },
+        market_dynamics_archive: {
+            table_name: 'audit.dataset_configs.market_dynamics_archive',
+            title: 'market_dynamics Archive'
+        },
+        sub_tracker_archive: {
+            table_name: 'audit.dataset_configs.sub_tracker_archive',
+            title: 'sub_tracker Archive'
+        },
+        receipt2_archive: {
+            table_name: 'audit.dataset_configs.receipt2_archive',
+            title: 'receipt2 Archive'
+        },
+        mall_archive: {
+            table_name: 'audit.dataset_configs.mall_archive',
+            title: 'mall Archive'
         }
     },
 
