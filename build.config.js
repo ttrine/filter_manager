@@ -91,6 +91,10 @@ module.exports = {
             table_name: 'dataset_configs.mall.raw_hierarchy',
             title: 'Raw Hierarchy'
         },
+        peeriq_raw_hierarchy: {
+            table_name: 'dataset_configs.peeriq.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
         card_companies: {
             table_name: 'dataset_configs.card.companies',
             title: 'Companies'
@@ -125,6 +129,10 @@ module.exports = {
         },
         mall_companies: {
             table_name: 'dataset_configs.mall.companies',
+            title: 'Companies'
+        },
+        peeriq_companies: {
+            table_name: 'dataset_configs.peeriq.companies',
             title: 'Companies'
         },
         companies_transaction_log: {
@@ -187,6 +195,10 @@ module.exports = {
             table_name: 'audit.dataset_configs.mall_transaction_log',
             title: 'mall Transaction Log'
         },
+        peeriq_transaction_log: {
+            table_name: 'audit.dataset_configs.peeriq_archive',
+            title: 'peeriq Archive'
+        },
         card_archive: {
             table_name: 'audit.dataset_configs.card_archive',
             title: 'card Archive'
@@ -222,6 +234,14 @@ module.exports = {
         mall_archive: {
             table_name: 'audit.dataset_configs.mall_archive',
             title: 'mall Archive'
+        },
+        peeriq_archive: {
+            table_name: 'audit.dataset_configs.peeriq_archive',
+            title: 'peeriq Archive'
+        },
+        filters_archive: {
+            table_name: 'audit.system_data.filters_archive',
+            title: 'Filters Archive'
         }
     },
 

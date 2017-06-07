@@ -24,7 +24,7 @@
 	
 	<block name="access_controller">
 
-		<do onchange_="selected_nodes">
+		<do onsubmit_="process_selection">
 			<do>
 				<note> If at least 1 box is checked, put selection into a CSL </note>
 				<set node_list=""/>
@@ -36,6 +36,9 @@
 					<set node_list="{strsubst('{@node_list}';',';0;'\',\'')}"/>
 					<set node_list="{splice('\'' @node_list '\'';'')}"/>
 				</if>
+			</do>
+			<do>
+				<set company_list="{@pre_company_list}"/>
 			</do>
 		</do>
 
@@ -54,16 +57,18 @@
 		<do onsubmit_="grant">
 			<note> Process a grant event. </note>
 			<insert block="non_empty_lists_check"/>
+			<insert block="authorized_grant_constraint"/>
 			<if test="{'{@mode}'='Ticker'}">
 				<insert block="legal_ticker_insert_constraint"/>
 			</if>
 			<insert block="grant"/>
-			<insert block="write_filters"/>		
+			<insert block="write_filters"/>
 		</do>
 
 		<do onsubmit_="revoke">
 			<note> Process a revoke event. </note>
 			<insert block="non_empty_lists_check"/>
+			<insert block="authorized_revoke_constraint"/>
 			<insert block="revoke"/>
 			<insert block="write_filters"/>
 		</do>
@@ -124,6 +129,7 @@
 		<note> Process a proposed dataset hierarchy </note>
 		<do onchange_="temp_path">
 			<insert block="dataset_selected_constraint"/>
+			<insert block="authorized_hierarchy_modification_constraint"/>
 			<do>
 				<set refresh_grids="1"/>
 			</do>
@@ -172,6 +178,12 @@
 			<set refresh_grids="0"/>
 			<set access_summary_visible="0"/>
 			<set access_full_visible="1"/>
+		</do>
+	</block>
+
+	<block name="dataset_controller">
+		<do on_="init" base_="default.lonely" row_="1" col_="1" value_="usr_dataset">
+			<insert block="get_dataset"/>
 		</do>
 	</block>
 </library>

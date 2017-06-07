@@ -10,7 +10,7 @@ module.exports = function (grunt) {
 
 		acc[name] = {
 			files: obj.src,
-			tasks: tasks
+			tasks: tasks,
 		};
 		return acc;
 	}, {});
@@ -25,7 +25,7 @@ module.exports = function (grunt) {
 			options: {
 				livereload: true,
 				livereloadOnError: false,
-				spawn: false
+				spawn: true
 			},
 
 			html: {

@@ -116,12 +116,12 @@
 		<base table="<%= root_path %>.system_data.hierarchies"/>
 		<layer name="layer_0">
 			<sel value="level=0"/>
-			<colord cols="key,node"/>
+			<colord cols="key,node,size"/>
 		</layer>
 		<for i="1" to="{@tree_height}">
 			<layer name="layer_{@i}">
 				<insert block="get_children" key="{@exp_path.{@i}}"/>
-				<colord cols="key,node"/>
+				<colord cols="key,node,size"/>
 			</layer>
 		</for>
 	</block>
@@ -151,6 +151,13 @@
 			<if test="{@illegal_insert_flag}">
 				<signal msg="Error: It appears that you are trying to perform a ticker-based grant on one or more companies that currently have hierarchy-based access. To continue, please revoke from these companies access to all non-ticker nodes."/>
 			</if>
+		</do>
+	</block>
+
+	<block name="legal_dataset_constraint">
+		<do base_="<%= root_path %>.system_data.access" value1_="@legal_dataset_flag" row1="1" col1="1">
+			<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
+
 		</do>
 	</block>
 
@@ -241,7 +248,6 @@
 		<if test="{csl_len(@node_list)>0 & csl_len(@company_list)>0}">
 			<then>
 				<insert block="proposed_grant_table" node_list="{@node_list}" company_list="{@company_list}"/>
-				<link table2="<%= root_path %>.system_data.access" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="include"/>
 				<sel value="compid={@company_list}"/>
 				<if test="{'{@mode}'='Ticker'}">
 					<link table2="<%= root_path %>.system_data.hierarchies" col="dataset,node"/>
@@ -255,6 +261,8 @@
 				<sel value="i_=-1"/>
 			</else>
 		</if>
+		<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+		<link table2="<%= root_path %>.system_data.filters" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="include"/>
 	</block>
 
 	<block name="grant_insertions" node_list="" company_list="">
@@ -269,6 +277,8 @@
 				<sel value="i_=-1"/>
 			</else>
 		</if>
+		<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+		<link table2="<%= root_path %>.system_data.filters" col="compid,dataset,node,access_start,access_end,redaction_start,redaction_end" type="exclude"/>
 	</block>
 
 	<block name="grant_deletions" node_list="" company_list="">
@@ -288,6 +298,9 @@
 	</block>
 
 	<block name="grant">
+		<do action_="api" api_="dbupdate">
+			<path><%= root_path %>.system_data.access</path>
+		</do>
 		<do action_="api" api_="query">
 			<name><%= root_path %>.system_data.access</name>
 			<ops>
@@ -311,7 +324,9 @@
 			<sel value="compid={@company_list}"/>
 			<willbe name="dummy" value="1"/>
 			<link table2="<%= root_path %>.system_data.hierarchies" col="dummy" expand="1" col2="dummy" shift="0">
-				<sel value="key={@node_list}"/>
+				<insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+				<sel value="key={@node_list}|key_ancestor={@node_list}"/>
+				<sel value="g_first1(dataset node;;)"/>
 				<willbe name="dummy" value="1"/>
 				<colord cols="dataset,node,dummy"/>
 			</link>
@@ -333,9 +348,13 @@
 				<sel value="i_=-1"/>
 			</else>
 		</if>
+		<insert block="compute_filters" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
 	</block>
 
 	<block name="revoke">
+		<do action_="api" api_="dbupdate">
+			<path><%= root_path %>.system_data.access</path>
+		</do>
 		<do action_="api" api_="query">
 			<name><%= root_path %>.system_data.access</name>
 			<ops>
@@ -425,31 +444,51 @@
 	        </link>
 	    </link>
 	    <note>Cleanup</note>
-	    <willbe name="total_children" value="if(total_children_raw=na;0;total_children_raw)"/>
-	    <willbe name="children_permissioned_to_company" value="if(access_children_raw=na;0;access_children_raw)"/>
-	    <willbe name="total_leaves" value="if(total_leaves_raw=na;0;total_leaves_raw)"/>
-	    <willbe name="leaves_permissioned_to_company" value="if(access_leaves_raw=na;0;access_leaves_raw)"/>
-	    <colord cols="compid,dataset,node,access_children,total_children,access_leaves,total_leaves"/>
+	    <willbe name="total_leaves" label="Total Identifiers" value="if(total_leaves_raw=na;0;total_leaves_raw)"/>
+	    <willbe name="access_leaves" label="Identifiers Company can Access" value="if(access_leaves_raw=na;0;access_leaves_raw)"/>
+	    <colord cols="compid,dataset,node,access_leaves,total_leaves"/>
 	</block>
 
 	<block name="company_metrics_access_leaves">
-	    <base table="<%= root_path %>.system_data.hierarchies"/>
-	    <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
-	    <sel value="key={@cm_key}"/>
+		<base table="<%= root_path %>.system_data.hierarchies"/>
+		<insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+		<if test="{{@cm_key}='none.all'}">
+			<then>
+				<note> Get all leaves </note>
+				<sel value="g_first1(dataset leaf;;)"/>
+			</then>
+			<else>
+				<note> Get leaves for the selected subtree </note>
+				<sel value="key={@cm_key}"/>
+			</else>
+		</if>
 	    <link table2="<%= root_path %>.system_data.filters" col="dataset,leaf" col2="dataset,node" type="include">
 	        <sel value="compid={@company_list}"/>
 	    </link>
-	    <colord cols="leaf"/>
+		<willbe name="identifier" value="leaf"/>
+		<colord cols="dataset,identifier"/>
+		<sort col="dataset" dir="up"/>
 	</block>
 
 	<block name="company_metrics_no_access_leaves">
-	    <base table="<%= root_path %>.system_data.hierarchies"/>
-	    <insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
-	    <sel value="key={@cm_key}"/>
+		<base table="<%= root_path %>.system_data.hierarchies"/>
+		<insert block="leaf_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
+		<if test="{{@cm_key}='none.all'}">
+			<then>
+				<note> Get all leaves </note>
+				<sel value="g_first1(dataset leaf;;)"/>
+			</then>
+			<else>
+				<note> Get leaves for the selected subtree </note>
+				<sel value="key={@cm_key}"/>
+			</else>
+		</if>
 	    <link table2="<%= root_path %>.system_data.filters" col="dataset,leaf" col2="dataset,node" type="exclude">
 	        <sel value="compid={@company_list}"/>
 	    </link>
-	    <colord cols="leaf"/>
+		<willbe name="identifier" value="leaf"/>
+		<colord cols="dataset,identifier"/>
+		<sort col="dataset" dir="up"/>
 	</block>
 
 <note> Hierarchies </note>
@@ -1119,6 +1158,9 @@
 
 <note> Audit </note>
 	<block name="log_transaction">
+		<do action_="api" api_="dbupdate">
+			<path>{@audit_path}</path>
+		</do>
 		<do action_="api" api_="query">
 			<name>{@audit_path}</name>
 			<ops>
@@ -1136,6 +1178,9 @@
 	</block>
 
 	<block name="archive">
+		<do action_="api" api_="dbupdate">
+			<path>{@archive_path}</path>
+		</do>
 		<do action_="api" api_="query">
 			<name>{@archive_path}</name>
 			<ops>
@@ -1202,6 +1247,9 @@
 	</block>
 
 	<block name="write_filters">
+		<do action_="api" api_="dbupdate">
+			<path><%= root_path %>.system_data.filters</path>
+		</do>
 		<do action_="api" api_="query">
 			<name><%= root_path %>.system_data.filters</name>
 			<ops>
@@ -1222,5 +1270,69 @@
 		<insert block="save"/>
 		<do><set table_to_archive="<%= root_path %>.system_data.filters" archive_table_name="Filters Archive" archive_path="<%= root_path %>.audit.system_data.filters_archive"/></do>
 		<insert block="archive"/>
+	</block>
+
+<note> Dataset </note>
+	<block name="get_dataset">
+		<willbe name="usr_dataset" value="'{userdata(;'uid')}'"/>
+		<colord cols="usr_dataset"/>
+	</block>
+
+	<block name="authorized_hierarchy_modification_constraint">
+		<do base_="<%= root_path %>.system_data.managers" value1_="@authorized_modification_flag" row1="1" col1="1">
+			<sel value="user='{@usr_dataset}'"/>
+			<willbe name="selected_dataset" value="'{@dataset}'"/>
+			<willbe name="is_permissioned" value="selected_dataset=dataset"/>
+			<tabu label="authorized_modification">
+				<tcol fun="hi" source="is_permissioned"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{~@authorized_modification_flag}">
+				<signal msg="Error: You are not authorized to make this change."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="authorized_grant_constraint">
+		<do base_="<%= root_path %>.system_data.access" value1_="@authorized_modification_flag" row1="1" col1="1">
+			<insert block="grant_insertions" node_list="{@node_list}" company_list="{@company_list}"/>
+			<tabu breaks="dataset">
+				<tcol fun="cnt" source="dataset"/>
+			</tabu>
+			<link table2="<%= root_path %>.system_data.managers" col="dataset">
+				<sel value="user='{@usr_dataset}'"/>
+			</link>
+			<willbe name="is_permissioned" value="user<>na"/>
+			<tabu label="authorized_modification">
+				<tcol fun="lo" source="is_permissioned"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{~@authorized_modification_flag}">
+				<signal msg="Error: You are not authorized to make this change."/>
+			</if>
+		</do>
+	</block>
+
+	<block name="authorized_revoke_constraint">
+		<do base_="<%= root_path %>.system_data.access" value1_="@authorized_modification_flag" row1="1" col1="1">
+			<insert block="revoke_deletions" node_list="{@node_list}" company_list="{@company_list}"/>
+			<tabu breaks="dataset">
+				<tcol fun="cnt" source="dataset"/>
+			</tabu>
+			<link table2="<%= root_path %>.system_data.managers" col="dataset">
+				<sel value="user='{@usr_dataset}'"/>
+			</link>
+			<willbe name="is_permissioned" value="user<>na"/>
+			<tabu label="authorized_modification">
+				<tcol fun="lo" source="is_permissioned"/>
+			</tabu>
+		</do>
+		<do>
+			<if test="{~@authorized_modification_flag}">
+				<signal msg="Error: You are not authorized to make this change."/>
+			</if>
+		</do>
 	</block>
 </library>

@@ -28,8 +28,7 @@
 
 			<layout height_="140"
 				arrange_="v" flexible_="0" collapsible_="0">
-
-				<widget class_="text" text_="Add" halign_="center" 
+				<widget class_="text" text_="Add" halign_="center"
 					style_="font-family:menlo;
 								font-size:11pt;
 								color:#002b36"/>
@@ -95,7 +94,7 @@
 					bind_="exp_path,selected_nodes" to_="exp_path,selected_nodes">
 					<dynamic>
 						<widget class_="querytree" maxrows_="9999"
-							expvalue_="exp_path" pathvalue_="selected_nodes">
+							expvalue_="exp_path" pathvalue_="selected_nodes" trunc="1">
 
 							<insert block="generate_querytree"/>
 						</widget>
@@ -103,7 +102,7 @@
 				</widget>
 			</layout>
 
-			<layout collapsible_="0"
+			<layout height_="300" collapsible_="0"
 				arrange_="v">
 
 				<widget class_="text" text_="Companies" 
@@ -114,7 +113,7 @@
 
 				<widget class_="dropdownlist" refreshon_="1"
 					inputwidth_="285" 
-					value_="@company_list">
+					value_="@pre_company_list">
 
 					<insert block="get_companies"/>
 				</widget>
@@ -123,21 +122,43 @@
 					halign_="center"/>
 
 			</layout>
+
+			<layout height="50" collapsible_="0" flexible_="0"
+					arrange_="v">
+
+				<widget class_="button" type_="submit" submit_="process_selection" text_="Go"/>
+
+			</layout>
 		</layout>
 
 		<layout type_="tabpanel" height_="100%" width_="100%" 
 			arrange_="v" halign_="left" collapsible_="0" 
 			background_="#eee8d5">
 
-			<layout label_="View" height_="865" width_="100%" 
-				halign_="center"
-				background_="#eee8d5">
+			<layout label_="Summary" height_="865" width_="100%"
+					background_="#eee8d5">
 
-				<widget class_="grid" type_="scroll" label_="Current access" width_="1080"
-					rowcol_="0" refreshon_="1">
+				<layout arrange_="v">
+					<widget class_="text" text_="Select a company to view its access." invmode_="hide" require_="{csl_len(@company_list)<>1}"/>
+					<widget class_="grid" label_="Overview" colhead_="label" type_="scroll" width_="980" invmode_="hide" require_="{csl_len(@company_list)=1}" clickable_="node" value_="cm_node" submit_="update_context_node" rowcol_="0">
+						<insert block="company_metrics_main"/>
+					</widget>
 
-					<insert block="view" node_list="{@node_list}" company_list="{@company_list}"/>
-				</widget>
+					<widget class_="button" type_="submit" submit_="parent_context" text_="Go up a level ↑" invmode_="hide" require_="{csl_len(@company_list)=1}"/>
+
+				</layout>
+				<layout arrange_="h">
+					<layout arrange_="v">
+						<widget class_="grid" label_="{{@company_list}} can access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
+							<insert block="company_metrics_access_leaves"/>
+						</widget>
+					</layout>
+					<layout arrange_="v">
+						<widget class_="grid" label_="{{@company_list}} can't access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
+							<insert block="company_metrics_no_access_leaves"/>
+						</widget>
+					</layout>
+				</layout>
 			</layout>
 
 			<layout label_="Grant" type_="splitter" height_="865" width_="100%" 
@@ -146,7 +167,7 @@
 
 				<layout collapsible_="0">
 
-					<widget class_="grid" label_="Current access" type_="scroll" width_="1080"
+					<widget class_="grid" label_="Existing access" type_="scroll" width_="1080"
 						rowcol_="0" refreshon_="1">
 
 						<insert block="grant_unchanged" node_list="{@node_list}" company_list="{@company_list}"/>
@@ -156,11 +177,6 @@
 						rowcol_="0" refreshon_="1">
 
 						<insert block="grant_insertions" node_list="{@node_list}" company_list="{@company_list}"/>
-					</widget>
-
-					<widget class_="grid" label_="Access to remove" type_="scroll" width_="1080" 
-						rowcol_="0" refreshon_="1">
-						<insert block="grant_deletions" node_list="{@node_list}" company_list="{@company_list}"/>
 					</widget>
 
 					<widget class_="button" type_="submit" text_="Grant" submit_="grant"/>
@@ -235,30 +251,6 @@
 
 			</layout>
 
-			<layout label_="Access Summaries" height_="865" width_="100%" 
-				background_="#eee8d5">
-
-				<layout arrange_="v">
-			        <widget class_="grid" width_="980" label_="Company Metrics" invmode_="hide" require_="{csl_len(@company_list)>0}" clickable_="node" value_="cm_node" submit_="update_context_node" rowcol_="0">
-						<insert block="company_metrics_main"/>
-			        </widget>
-
-			        <widget class_="button" type_="submit" submit_="parent_context" text_="Go up a level ↑"/>
-
-				</layout>
-		        <layout arrange_="h">
-		            <layout arrange_="v">
-		                <widget class_="grid" label_="{{@company_list}} can access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
-							<insert block="company_metrics_access_leaves"/>
-		                </widget>
-		            </layout>
-		            <layout arrange_="v">
-		                <widget class_="grid" label_="{{@company_list}} can't access" invmode_="hide" require_="{csl_len(@company_list)=1}" width_="450" rowcol_="0">
-							<insert block="company_metrics_no_access_leaves"/>
-		                </widget>
-		            </layout>
-		        </layout>
-			</layout>
 
 		</layout>
 	</block>
@@ -448,14 +440,19 @@
 
 <block name="filter_manager">
 	<dynamic
+		usr_dataset = ""
+
 		not_unique_flag = "0"
 		exists_flag		= "0"
 		current_compid	= ""
 		new_compid 		= ""
 
+		authorized_modification_flag = "1"
 		illegal_insert_flag = "0"
+		legal_dataset_flag = "0"
+		pre_company_list = "','"
 		company_list = "','"
-		node_list = "'none.all'"
+		node_list = ""
 		selected_nodes = "{lst(lst(pkg('key'; lst())))}"
 		exp_path = ""
 		mode = "Hierarchy"
@@ -519,25 +516,26 @@
 		<insert block="companies_controller"/>
 		<insert block="access_controller"/>
 		<insert block="hierarchies_controller"/>
+		<insert block="dataset_controller"/>
 
 		<layout height_="93%" width_="98%" padding_="10" 
 			arrange_="v" halign_="center"
 			background_="#fdf6e3">
 
-			<widget class_="text" text_="Filter Manager" height_="24" padding_="0" 
+			<widget class_="text" text_="Filter Manager" height_="24" padding_="0"
 				style_="font-family:'Lucida Console', Monaco, monospace;
 							font-size:13pt;color:#002b36;"/>
-			<layout label_= "Filter Manager" type_="tabpanel" height_="100%" width_="100%" 
-				arrange_="h" halign_="left" 
+			<layout label_= "Filter Manager" type_="tabpanel" height_="100%" width_="100%"
+				arrange_="h" halign_="left"
 				background_="#eee8d5">
 
-				<layout label_= "Companies" type_="splitter" height_="99.8%" width_="99.9%" 
-					arrange_="h" 
+				<layout label_= "Companies" type_="splitter" height_="99.8%" width_="99.9%"
+					arrange_="h"
 					background_="#eee8d5">
 
 					<insert block="companies_view"/>
 				</layout>
-				
+
 				<layout label_= "Access" type_="splitter" height_="99.8%" width_="99.9%"
 					arrange_="h">
 
