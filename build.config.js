@@ -242,6 +242,30 @@ module.exports = {
         filters_archive: {
             table_name: 'audit.system_data.filters_archive',
             title: 'Filters Archive'
+        },
+        oi_fi_companies: {
+            table_name: 'dataset_configs.oi_fi.companies',
+            title: 'Companies'
+        },
+        oi_fi_raw_hierarchy: {
+            table_name: 'dataset_configs.oi_fi.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        card_canada_companies: {
+            table_name: 'dataset_configs.card_canada.companies',
+            title: 'Companies'
+        },
+        card_canada_raw_hierarchy: {
+            table_name: 'dataset_configs.card_canada.raw_hierarchy',
+            title: 'Raw Hierarchy'
+        },
+        sector_companies: {
+            table_name: 'dataset_configs.sector.companies',
+            title: 'Companies'
+        },
+        sector_raw_hierarchy: {
+            table_name: 'dataset_configs.sector.raw_hierarchy',
+            title: 'Raw Hierarchy'
         }
     },
 
