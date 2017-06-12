@@ -17,7 +17,7 @@ module.exports = {
 		password: '<%= login_password %>'
 	},
 
-	root_path: 'x1010data.ttrine.filter_manager_dev',
+	root_path: 'x1010data.huangc.filter_manager_dev',
 	basetable: 'default.lonely',
 
 	init_queries: {
@@ -278,7 +278,7 @@ module.exports = {
 
 	env_configs: {
 		developer: {
-            root_path: 'x1010data.ttrine.filter_manager_dev',
+            root_path: 'x1010data.huangc.filter_manager_dev',
             login: {
                 gateway: 'https://www2.1010data.com/beta-latest/gw',
                 id: '<%= login_id %>',

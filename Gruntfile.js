@@ -30,7 +30,7 @@ module.exports = function (grunt) {
 	// Time how long tasks take. Can help when optimizing build times
 	require('time-grunt')(grunt);
 
-	var gateway = grunt.option('g') || process.env['TENTENGW'] || 'https://www2.1010data.com/beta-latest/gw';
+	var gateway = grunt.option('g') || process.env['TENTENGW'] || 'https://www2.1010data.com/prime-latest/gw';
 	var login_id = grunt.option('u') || process.env['TENTENUID'];
 	if (!login_id)
 		grunt.fatal('Login ID not specified via "-u" cmd line arg or specified as environment variable "TENTENUID"');
