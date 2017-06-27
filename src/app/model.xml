@@ -413,10 +413,26 @@
 	        <link table2="<%= root_path %>.system_data.hierarchies" col="key" col2="key_ancestor" cols="compid,access_children_raw">
 	            <insert block="path_table" hierarchies_table="<%= root_path %>.system_data.hierarchies"/>
 	            <sel value="level=level_ancestor+1"/>
+<ignore>
 	            <link table2="<%= root_path %>.system_data.access" col="dataset,node" cols="compid" type="select" expand="1">
 	                <sel value="compid={@company_list}"/>
 	            </link>
-	            <willbe name="access_children_raw" value="g_cnt(compid key_ancestor;)"/>
+	            <willbe name="access_children_raw"   value="g_cnt(compid key_ancestor;)"/>
+</ignore>
+
+					<link table2="<%= root_path %>.system_data.access" col="key_ancestor" suffix="_key" col2="key" cols="compid,ind" expand="1" shift="0">
+						<willbe name="key" value="splice(dataset node;'.')"/>
+						<sel value="compid={@company_list}"/>
+						<willbe name="ind" value="1"/>
+					</link>
+					<link table2="<%= root_path %>.system_data.access" col="dataset,node" suffix="_node" cols="compid,ind" expand="1" col2="dataset,node" shift="0">
+						<sel value="compid={@company_list}"/>
+						<willbe name="ind" value="1"/>
+					</link>
+					<sel value="(ind_node=1)|(ind_key=1)"/>
+					<willbe name="compid" value="ifnull(compid_key;compid_node)"/>
+					<willbe name="access_children_raw" value="g_cnt(compid key_ancestor;)"/>
+
 	        </link>
 	    </link>
 	    <note>Count total leaves</note>
@@ -444,9 +460,11 @@
 	        </link>
 	    </link>
 	    <note>Cleanup</note>
-	    <willbe name="total_leaves" label="Total Identifiers" value="if(total_leaves_raw=na;0;total_leaves_raw)"/>
-	    <willbe name="access_leaves" label="Identifiers Company can Access" value="if(access_leaves_raw=na;0;access_leaves_raw)"/>
-	    <colord cols="compid,dataset,node,access_leaves,total_leaves"/>
+	    <willbe name="total_children" label="Total Children" value="if(total_children_raw=na;0;total_children_raw)"/>
+	    <willbe name="access_children" label="Children Company can Access" value="if(access_children_raw=na;0;access_children_raw)"/>
+		<willbe name="total_leaves" label="Total Identifiers" value="if(total_leaves_raw=na;0;total_leaves_raw)"/>
+		<willbe name="access_leaves" label="Identifiers Company can Access" value="if(access_leaves_raw=na;0;access_leaves_raw)"/>
+	    <colord cols="compid,dataset,node,access_leaves,total_leaves,access_children,total_children"/>
 	</block>
 
 	<block name="company_metrics_access_leaves">
@@ -538,6 +556,21 @@
 			</if>
 		</do>
 	</block>
+
+	<block name="unique_leaves_constraint">
+		<do base_="<%= root_path %>.system_data.temp.new_raw_hierarchy" value1_="@not_unique_leaves_flag" row1="1" col1="1">
+		<willbe name="leaves" value="r_last(;)"/>
+		<willbe name="num_unique_leaves" value="g_ucnt(;;leaves)"/>
+		<willbe name="num_leaves" value="n_"/>
+		<willbe name="not_unique_leaves" value="num_unique_leaves<>num_leaves"/>
+		<colord cols="not_unique_leaves"/>
+		</do>
+		<do>
+			<if test="{@not_unique_leaves_flag}">
+				<signal msg="The leaves are not unique."/>
+			</if>
+		</do>
+ 	</block>
 
 	<note> Tree conversion </note>
 	<block name="left_align" nrow="" ncol="" col_list="root" row_list="m0_new">
@@ -680,6 +713,11 @@
 		</do>
 		<insert block="save"/>
 
+
+		<note> Check whether leaves are unique </note>
+		<insert block="unique_leaves_constraint"/>
+
+
 		<note>Write metadata to table</note>
 		<do action_="api" api_="gettab" value_="@gettab_result">
 			<name>{@save_path}</name>
@@ -715,8 +753,8 @@
 
 	<block name="compute_unlaunched_against_current">
 		<note> Infer unlaunched from each dataset folder and, last of all, the new dataset hierarchy </note>
-		<merge table2="<%= root_path %>.system_data.dummy" match="pad">
-			<loop with_="tickers_table" mode_="merge">
+		<merge table2="default.lonely" match="pad">
+			<loop with_="tickers_table"  mode_="merge">
 				<outer>
 					<directory folder="<%= root_path %>.dataset_configs" depth="2"/>
 					<sel value="title='Tickers'"/>
